@@ -2,106 +2,83 @@
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from turing_machine import TuringMachine, Transition
-from dataclasses import dataclass
-from typing import List, Optional, Dict
+from turing_machine import TuringMachine
+import os
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-@dataclass
-class TransitionInput:
-    current_state: str
-    read_symbol: str
-    write_symbol: str
-    direction: str  # 'l', 'r', '*'
-    new_state: str
-
-@dataclass
-class TuringMachineInput:
-    transitions: List[TransitionInput]
-    input_string: str
-
-@dataclass
-class StepOutput:
-    current_state: str
-    tape: str
-    head: int
-    steps: int
-    halted: bool
-
-# Initialize a global TuringMachine instance
-tm: Optional[TuringMachine] = None
+tm = None
 
 @app.route('/initialize', methods=['POST'])
-def initialize_tm():
+def initialize():
     global tm
     data = request.get_json()
-    transitions_input = data.get('transitions', [])
-    input_string = data.get('input_string', '')
+    transitions = data.get('transitions', [])
+    input_string = data.get('input_string', '_')
+    start_state = data.get('start_state', 'start')  # Default to 'start' if not provided
 
-    transitions_dict = {}
-    for t in transitions_input:
-        current_state = t.get('current_state')
-        read_symbol = t.get('read_symbol')
-        write_symbol = t.get('write_symbol')
-        direction = t.get('direction')
-        new_state = t.get('new_state')
+    try:
+        # Initialize the Turing Machine
+        tm = TuringMachine(transitions, input_string, start_state)
+    except ValueError as ve:
+        return jsonify({"detail": str(ve)}), 400
+    except Exception as e:
+        return jsonify({"detail": "Failed to initialize Turing Machine."}), 500
 
-        key = f"{current_state},{read_symbol}"
-        if key in transitions_dict:
-            return jsonify({"detail": f"Duplicate transition for state-symbol pair: {key}"}), 400
-
-        if direction not in ['l', 'r', '*']:
-            return jsonify({"detail": f"Invalid direction: {direction}"}), 400
-
-        transitions_dict[key] = Transition(
-            new_state=new_state,
-            write_symbol=write_symbol,
-            direction=direction
-        )
-
-    tm = TuringMachine(transitions=transitions_dict, input_string=input_string)
     return jsonify({"message": "Turing Machine initialized successfully."}), 200
 
 @app.route('/step', methods=['POST'])
-def execute_step():
+def step():
     global tm
     if not tm:
         return jsonify({"detail": "Turing Machine not initialized."}), 400
 
-    step_result = tm.step()
-    if not step_result:
-        return jsonify({"detail": "Machine has already halted."}), 400
-
-    return jsonify(step_result), 200
+    try:
+        result = tm.step()
+        if result is None:
+            return jsonify({"detail": "Turing Machine has already halted."}), 400
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"detail": "Error during stepping the Turing Machine."}), 500
 
 @app.route('/run', methods=['POST'])
-def run_until_halt():
+def run():
     global tm
     if not tm:
         return jsonify({"detail": "Turing Machine not initialized."}), 400
 
-    step_result = None
-    while not tm.halted:
-        step_result = tm.step()
-
-    if step_result:
-        return jsonify(step_result), 200
-    else:
-        return jsonify({"detail": "Machine has already halted."}), 400
+    try:
+        while not tm.halted:
+            tm.step()
+        result = {
+            "halted": tm.halted,
+            "current_state": tm.current_state,
+            "tape": ''.join(tm.tape).replace(tm.tape_symbol, '_'),
+            "head": tm.head,
+            "steps": tm.steps
+        }
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"detail": "Error during running the Turing Machine."}), 500
 
 @app.route('/reset', methods=['POST'])
-def reset_tm():
+def reset():
     global tm
-    data = request.get_json()
-    input_string = data.get('input_string', '_')
-
     if not tm:
         return jsonify({"detail": "Turing Machine not initialized."}), 400
 
-    tm.reset(input_string)
+    data = request.get_json()
+    input_string = data.get('input_string', '_')
+    start_state = data.get('start_state', 'start')  # Reset to the provided start state
+
+    try:
+        tm.reset(input_string, start_state)
+    except Exception as e:
+        return jsonify({"detail": "Error during resetting the Turing Machine."}), 500
+
     return jsonify({"message": "Turing Machine reset successfully."}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("BACKEND_PORT", 5001))
+    app.run(host='0.0.0.0', port=port, debug=True)

@@ -37,7 +37,7 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
         ) {
             const key = `${transition.current_state},${transition.read_symbol}`;
             if (transitions.some(t => `${t.current_state},${t.read_symbol}` === key)) {
-                alert(`Duplicate transition for state-symbol pair: ${key}`);
+                alert(`Duplicate transition for state-symbol pair: (${transition.current_state}, ${transition.read_symbol})`);
                 return;
             }
 

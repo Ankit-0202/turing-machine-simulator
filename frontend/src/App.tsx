@@ -6,6 +6,7 @@ import InputStringComponent from './components/InputString';
 import ControlsComponent from './components/Controls';
 import TapeDisplay from './components/TapeDisplay';
 import StatusDisplay from './components/StatusDisplay';
+import StartStateSelector from './components/StartStateSelector';
 import api from './api';
 import { TransitionInput, StepOutput } from './types';
 
@@ -18,10 +19,16 @@ function App() {
     const [steps, setSteps] = useState<number>(0);
     const [isStarted, setIsStarted] = useState<boolean>(false);
     const [isHalted, setIsHalted] = useState<boolean>(false);
+    const [startState, setStartState] = useState<string>('');
 
     const handleStart = async () => {
         if (transitions.length === 0) {
             alert('Please add at least one transition before starting the simulation.');
+            return;
+        }
+
+        if (startState === '') {
+            alert('Please select a start state before starting the simulation.');
             return;
         }
 
@@ -35,6 +42,7 @@ function App() {
                     new_state: t.new_state,
                 })),
                 input_string: inputString || '_',
+                start_state: startState,
             });
             // Fetch initial state by performing a step
             const response = await api.post('/step');
@@ -83,7 +91,7 @@ function App() {
 
     const handleReset = async () => {
         try {
-            await api.post('/reset', { input_string: inputString || '_' });
+            await api.post('/reset', { input_string: inputString || '_', start_state: startState });
             setTape(inputString || '_');
             setHead(0);
             setCurrentState('-');
@@ -99,8 +107,10 @@ function App() {
     return (
         <div className="App font-sans bg-gray-100 min-h-screen flex flex-col">
             {/* Header */}
-            <header className="bg-blue-600 text-white py-4 shadow-md">
-                <h1 className="text-3xl font-bold text-center">Turing Machine Simulator</h1>
+            <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
+                <h1 className="text-3xl font-bold text-center flex-1">Turing Machine Simulator</h1>
+                {/* If you have DarkModeToggle, include it here */}
+                {/* <DarkModeToggle /> */}
             </header>
 
             {/* Main Content */}
@@ -111,9 +121,10 @@ function App() {
                     <StatusDisplay currentState={currentState} steps={steps} />
                 </div>
 
-                {/* Right Column: Transition Input, Input String, Controls */}
+                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
                 <div className="space-y-6">
                     <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
+                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
                     <InputStringComponent inputString={inputString} setInputString={setInputString} />
                     <ControlsComponent
                         onStart={handleStart}
@@ -132,6 +143,7 @@ function App() {
             </footer>
         </div>
     );
+
 }
 
 export default App;
