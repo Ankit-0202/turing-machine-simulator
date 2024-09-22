@@ -8,6 +8,7 @@ import TapeDisplay from './components/TapeDisplay';
 import StatusDisplay from './components/StatusDisplay';
 import StartStateSelector from './components/StartStateSelector';
 import TransitionHistory from './components/TransitionHistory';
+import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
 import api from './api';
 import { TransitionInput, StepOutput, TransitionTaken } from './types';
 
@@ -146,8 +147,7 @@ function App() {
             {/* Header */}
             <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
                 <h1 className="text-3xl font-bold text-center flex-1">Turing Machine Simulator</h1>
-                {/* If you have DarkModeToggle, include it here */}
-                {/* <DarkModeToggle /> */}
+                <DarkModeToggle /> {/* Include the DarkModeToggle component */}
             </header>
 
             {/* Main Content */}
