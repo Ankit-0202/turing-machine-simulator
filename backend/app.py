@@ -1,13 +1,13 @@
 # backend/app.py
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from turing_machine import TuringMachine
-import os
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS if frontend is on a different domain/port
 
+# Global instance of TuringMachine
 tm = None
 
 @app.route('/initialize', methods=['POST'])
@@ -16,63 +16,60 @@ def initialize():
     data = request.get_json()
     transitions = data.get('transitions', [])
     input_string = data.get('input_string', '_')
-    start_state = data.get('start_state', 'start')  # Default to 'start' if not provided
+    start_state = data.get('start_state', 'start')
+    machine_type = data.get('machine_type', 'standard').lower()  # Normalize to lowercase
 
     try:
-        # Initialize the Turing Machine
-        tm = TuringMachine(transitions, input_string, start_state)
+        tm = TuringMachine(
+            transitions=transitions,
+            input_string=input_string,
+            start_state=start_state,
+            machine_type=machine_type
+        )
+        return jsonify({"message": "Turing Machine initialized successfully."}), 200
     except ValueError as ve:
         return jsonify({"detail": str(ve)}), 400
-    except Exception as e:
-        return jsonify({"detail": "Failed to initialize Turing Machine."}), 500
-
-    return jsonify({"message": "Turing Machine initialized successfully."}), 200
 
 @app.route('/step', methods=['POST'])
 def step():
     global tm
     if not tm:
-        return jsonify({"detail": "Turing Machine not initialized."}), 400
+        return jsonify({"detail": "Turing Machine is not initialized."}), 400
 
-    try:
-        result = tm.step()
-        if result is None:
-            return jsonify({"detail": "Turing Machine has already halted."}), 400
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"detail": "Error during stepping the Turing Machine."}), 500
+    result = tm.step()
+    if not result:
+        return jsonify({"detail": "Turing Machine has already halted."}), 400
+
+    return jsonify(result), 200
 
 @app.route('/run', methods=['POST'])
 def run():
     global tm
     if not tm:
-        return jsonify({"detail": "Turing Machine not initialized."}), 400
+        return jsonify({"detail": "Turing Machine is not initialized."}), 400
 
-    try:
-        result = tm.run()
-        if result is None:
-            return jsonify({"detail": "Turing Machine has already halted."}), 400
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"detail": "Error during running the Turing Machine."}), 500
+    result = tm.run()
+    if not result:
+        return jsonify({"detail": "Turing Machine has already halted."}), 400
+
+    return jsonify(result), 200
 
 @app.route('/reset', methods=['POST'])
 def reset():
     global tm
-    if not tm:
-        return jsonify({"detail": "Turing Machine not initialized."}), 400
-
     data = request.get_json()
     input_string = data.get('input_string', '_')
-    start_state = data.get('start_state', 'start')  # Reset to the provided start state
+    start_state = data.get('start_state', 'start')
+    machine_type = data.get('machine_type', 'standard').lower()  # Normalize to lowercase
+
+    if not tm:
+        return jsonify({"detail": "Turing Machine is not initialized."}), 400
 
     try:
-        tm.reset(input_string, start_state)
-    except Exception as e:
-        return jsonify({"detail": "Error during resetting the Turing Machine."}), 500
+        tm.reset(input_string=input_string, start_state=start_state, machine_type=machine_type)
+        return jsonify({"message": "Turing Machine reset successfully."}), 200
+    except ValueError as ve:
+        return jsonify({"detail": str(ve)}), 400
 
-    return jsonify({"message": "Turing Machine reset successfully."}), 200
-
-if __name__ == "__main__":
-    port = int(os.environ.get("BACKEND_PORT", 5001))
-    app.run(host='0.0.0.0', port=port, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

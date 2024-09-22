@@ -2,6 +2,11 @@
 
 from typing import Dict, Optional, List, Tuple
 from dataclasses import dataclass
+import logging
+
+# Configure logging for debugging purposes
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Transition:
@@ -11,7 +16,7 @@ class Transition:
     breakpoint: bool = False  # Indicates if this transition has a breakpoint
 
 class TuringMachine:
-    def __init__(self, transitions: List[Dict], input_string: str, start_state: str = 'start', tape_symbol: str = '_'):
+    def __init__(self, transitions: List[Dict], input_string: str, start_state: str = 'start', tape_symbol: str = '_', machine_type: str = 'standard'):
         """
         Initialize the Turing Machine.
 
@@ -20,6 +25,7 @@ class TuringMachine:
         :param input_string: The initial tape input string. Use '*' to indicate the starting head position.
         :param start_state: The starting state of the Turing Machine.
         :param tape_symbol: The symbol representing a blank on the tape.
+        :param machine_type: The type of Turing Machine ('standard', 'left-bounded', etc.).
         """
         self.tape_symbol = tape_symbol
         self.transitions = self.parse_transitions(transitions)
@@ -28,6 +34,8 @@ class TuringMachine:
         self.steps = 0
         self.halted = False
         self.history = []  # List of transitions taken
+        self.machine_type = machine_type.lower()  # Normalize to lowercase
+        logger.debug(f"Initialized TuringMachine with type: {self.machine_type}")
 
     def parse_transitions(self, transitions: List[Dict]) -> List[Tuple[str, str, Transition]]:
         """
@@ -54,10 +62,10 @@ class TuringMachine:
 
             # Validate symbols: cannot contain ';' or whitespace
             invalid_symbols = {';'}
-            if read_symbol != '*' and any(char in invalid_symbols for char in read_symbol):
+            if read_symbol != '*' and any(char in invalid_symbols or char.isspace() for char in read_symbol):
                 raise ValueError(f"Invalid read_symbol '{read_symbol}' in transition at index {idx}.")
 
-            if write_symbol != '*' and any(char in invalid_symbols for char in write_symbol):
+            if write_symbol != '*' and any(char in invalid_symbols or char.isspace() for char in write_symbol):
                 raise ValueError(f"Invalid write_symbol '{write_symbol}' in transition at index {idx}.")
 
             # Validate state names: cannot contain ';' or whitespace
@@ -88,6 +96,7 @@ class TuringMachine:
                 breakpoint=breakpoint_flag
             )
             parsed_transitions.append((current_state, read_symbol, transition))
+            logger.debug(f"Parsed transition {idx}: {current_state} {read_symbol} {write_symbol} {direction} {new_state}")
 
         return parsed_transitions  # List of tuples (current_state, read_symbol, Transition)
 
@@ -106,12 +115,14 @@ class TuringMachine:
             if char == '*' and not found_head:
                 head = len(tape)
                 found_head = True
+                logger.debug(f"Found head indicator at position {idx}, setting head to {head}")
             else:
                 tape.append(char)
 
         # If '*' was not found, default head to 0
         if not found_head:
             head = 0
+            logger.debug("No head indicator '*' found in input string; defaulting head to position 0")
 
         # Replace any remaining '*' in the tape with blank symbol
         tape = [self.tape_symbol if c == '*' else c for c in tape]
@@ -125,6 +136,7 @@ class TuringMachine:
         :return: Dictionary containing the step details or None if halted.
         """
         if self.halted:
+            logger.debug("Turing Machine has already halted; no further steps.")
             return None
 
         # Read the current symbol under the head
@@ -133,6 +145,8 @@ class TuringMachine:
         else:
             current_symbol = self.tape_symbol
             self.tape.append(self.tape_symbol)
+
+        logger.debug(f"Step {self.steps + 1}: Current state: {self.current_state}, Read symbol: {current_symbol}, Head position: {self.head}")
 
         # Find matching transitions, considering wildcards
         possible_transitions = []
@@ -145,6 +159,7 @@ class TuringMachine:
 
         if not possible_transitions:
             self.halted = True
+            logger.debug("No matching transitions found; halting the machine.")
             return {
                 "halted": self.halted,
                 "current_state": self.current_state,
@@ -172,6 +187,7 @@ class TuringMachine:
 
         # Select the most specific transition
         selected_transition = possible_transitions[0][2]
+        logger.debug(f"Selected transition: {self.current_state} {current_symbol} -> {selected_transition.new_state} {selected_transition.write_symbol or 'no change'} {selected_transition.direction}")
 
         # Log the transition taken
         transition_taken = {
@@ -188,34 +204,50 @@ class TuringMachine:
         # Write the new symbol if not None
         if selected_transition.write_symbol:
             self.tape[self.head] = selected_transition.write_symbol
+            logger.debug(f"Wrote symbol: {selected_transition.write_symbol} at position {self.head}")
 
-        # Move the head
+        # Move the head based on machine type
         if selected_transition.direction == 'r':
             self.head += 1
             if self.head >= len(self.tape):
                 self.tape.append(self.tape_symbol)
+            logger.debug(f"Moved head right to position {self.head}")
         elif selected_transition.direction == 'l':
-            if self.head > 0:
-                self.head -= 1
+            if self.machine_type == 'left-bounded':
+                if self.head > 0:
+                    self.head -= 1
+                    logger.debug(f"Moved head left to position {self.head}")
+                else:
+                    # Cannot move left; stay at current position without modifying the tape
+                    logger.debug(f"Attempted to move left at position {self.head}; staying in place (Left-Bounded)")
             else:
-                self.tape.insert(0, self.tape_symbol)
-                self.head = 0
+                if self.head > 0:
+                    self.head -= 1
+                    logger.debug(f"Moved head left to position {self.head}")
+                else:
+                    self.tape.insert(0, self.tape_symbol)
+                    self.head = 0
+                    logger.debug(f"Extended tape left and moved head to position {self.head}")
         elif selected_transition.direction == '*':
             pass  # Do not move
+            logger.debug("Head remains in the current position (No movement)")
         else:
             raise ValueError(f"Invalid direction: {selected_transition.direction}")
 
         # Update the current state
         self.current_state = selected_transition.new_state
         self.steps += 1
+        logger.debug(f"Transition to new state: {self.current_state}, Total steps: {self.steps}")
 
         # Check for halting state
         if self.current_state.startswith('halt'):
             self.halted = True
+            logger.debug("Entered a halting state; halting the machine.")
 
         # If breakpoint is set, halt the machine
         if selected_transition.breakpoint:
             self.halted = True
+            logger.debug("Encountered a breakpoint; halting the machine.")
 
         # Prepare the tape for response
         tape_display = ''.join(self.tape).replace(self.tape_symbol, '_')
@@ -236,6 +268,7 @@ class TuringMachine:
         :return: Dictionary containing the final state details.
         """
         if self.halted:
+            logger.debug("Turing Machine has already halted; no run needed.")
             return None
 
         while not self.halted:
@@ -250,15 +283,18 @@ class TuringMachine:
             "transitions_traversed": self.history
         }
 
-    def reset(self, input_string: str, start_state: str = 'start'):
+    def reset(self, input_string: str, start_state: str = 'start', machine_type: str = 'standard'):
         """
-        Reset the Turing Machine with a new input string and start state.
+        Reset the Turing Machine with a new input string, start state, and machine type.
 
         :param input_string: The new input string with optional '*' to indicate head position.
         :param start_state: The new start state.
+        :param machine_type: The type of Turing Machine ('standard', 'left-bounded', etc.).
         """
         self.tape, self.head = self.parse_input(input_string)
         self.current_state = start_state
         self.steps = 0
         self.halted = False
         self.history = []
+        self.machine_type = machine_type.lower()  # Normalize to lowercase
+        logger.debug(f"Reset TuringMachine to type: {self.machine_type}")

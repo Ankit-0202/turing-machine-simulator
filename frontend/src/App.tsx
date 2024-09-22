@@ -1,16 +1,17 @@
 // frontend/src/App.tsx
 
-import { useState } from 'react';
-import api from './api';
-import ControlsComponent from './components/Controls';
-import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
-import InputStringComponent from './components/InputString';
-import StartStateSelector from './components/StartStateSelector';
-import StatusDisplay from './components/StatusDisplay';
-import TapeDisplay from './components/TapeDisplay';
-import TransitionHistory from './components/TransitionHistory';
+import React, { useState } from 'react';
 import TransitionInputComponent from './components/TransitionInput';
-import { StepOutput, TransitionInput, TransitionTaken } from './types';
+import InputStringComponent from './components/InputString';
+import ControlsComponent from './components/Controls';
+import TapeDisplay from './components/TapeDisplay';
+import StatusDisplay from './components/StatusDisplay';
+import StartStateSelector from './components/StartStateSelector';
+import TransitionHistory from './components/TransitionHistory';
+import MachineTypeSelector from './components/MachineTypeSelector'; // Import the MachineTypeSelector component
+import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
+import api from './api';
+import { TransitionInput, StepOutput, TransitionTaken, MachineType } from './types';
 
 function App() {
     const [transitions, setTransitions] = useState<TransitionInput[]>([]);
@@ -23,6 +24,7 @@ function App() {
     const [isHalted, setIsHalted] = useState<boolean>(false);
     const [startState, setStartState] = useState<string>('');
     const [transitionHistory, setTransitionHistory] = useState<TransitionTaken[]>([]);
+    const [machineType, setMachineType] = useState<MachineType>(MachineType.STANDARD); // Add machine type state
 
     const handleStart = async () => {
         if (transitions.length === 0) {
@@ -47,6 +49,7 @@ function App() {
                 })),
                 input_string: inputString || '_',
                 start_state: startState,
+                machine_type: machineType, // Send machine type to backend
             });
             // Initialize UI without performing the first step
             setTape(
@@ -124,7 +127,7 @@ function App() {
 
     const handleReset = async () => {
         try {
-            await api.post('/reset', { input_string: inputString || '_', start_state: startState });
+            await api.post('/reset', { input_string: inputString || '_', start_state: startState, machine_type: machineType });
             setTape(
                 inputString.includes('*')
                     ? inputString.replace('*', '_')
@@ -147,6 +150,7 @@ function App() {
             {/* Header */}
             <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
                 <h1 className="text-3xl font-bold text-center flex-1">Turing Machine Simulator</h1>
+                <MachineTypeSelector selectedType={machineType} setSelectedType={setMachineType} /> {/* Add MachineTypeSelector */}
                 <DarkModeToggle /> {/* Include the DarkModeToggle component */}
             </header>
 
@@ -154,7 +158,7 @@ function App() {
             <main className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column: Tape and Status */}
                 <div className="space-y-6">
-                    <TapeDisplay tape={tape} head={head} />
+                    <TapeDisplay tape={tape} head={head} machineType={machineType} /> {/* Pass machineType */}
                     <StatusDisplay currentState={currentState} steps={steps} />
                     <TransitionHistory transitions={transitionHistory} />
                 </div>

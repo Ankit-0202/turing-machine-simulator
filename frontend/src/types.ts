@@ -28,3 +28,16 @@ export interface TransitionTaken {
     new_state: string;
     breakpoint: boolean;
 }
+
+export enum MachineType {
+    STANDARD = 'standard',
+    LEFT_BOUNDED = 'left-bounded',
+    // Add more machine types here as needed
+}
+
+// Props for TapeDisplay component
+export interface TapeDisplayProps {
+    tape: string;
+    head: number;
+    machineType: MachineType;
+}
