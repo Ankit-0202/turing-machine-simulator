@@ -8,21 +8,20 @@ interface Props {
 }
 
 const TapeDisplay: React.FC<Props> = ({ tape, head }) => {
+    const tapeArray = tape.split('');
+
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
             <h3 className="text-xl font-semibold mb-4 border-b pb-2">Tape</h3>
-            <div className="flex overflow-x-auto p-4 bg-gray-50 border border-gray-300 rounded">
-                {tape.split('').map((symbol, index) => (
+            <div className="flex items-center justify-start space-x-2 overflow-x-auto">
+                {tapeArray.map((symbol, index) => (
                     <div
                         key={index}
-                        className={`relative flex items-center justify-center w-12 h-12 border-r border-gray-300 ${
-                            index === head ? 'bg-yellow-100' : 'bg-transparent'
-                        }`}
+                        className={`w-8 h-8 flex items-center justify-center border ${
+                            index === head ? 'bg-yellow-200 border-yellow-500 dark:bg-yellow-600' : 'bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500'
+                        } rounded`}
                     >
-                        <span className="text-lg font-medium">{symbol === '_' ? '□' : symbol}</span>
-                        {index === head && (
-                            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-6 border-transparent border-b-yellow-500"></div>
-                        )}
+                        {symbol}
                     </div>
                 ))}
             </div>

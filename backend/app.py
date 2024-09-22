@@ -49,15 +49,9 @@ def run():
         return jsonify({"detail": "Turing Machine not initialized."}), 400
 
     try:
-        while not tm.halted:
-            tm.step()
-        result = {
-            "halted": tm.halted,
-            "current_state": tm.current_state,
-            "tape": ''.join(tm.tape).replace(tm.tape_symbol, '_'),
-            "head": tm.head,
-            "steps": tm.steps
-        }
+        result = tm.run()
+        if result is None:
+            return jsonify({"detail": "Turing Machine has already halted."}), 400
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"detail": "Error during running the Turing Machine."}), 500

@@ -13,9 +13,10 @@ const StartStateSelector: React.FC<Props> = ({ transitions, startState, setStart
     const [states, setStates] = useState<string[]>([]);
 
     useEffect(() => {
+        // Extract unique states from transitions
         const uniqueStates = Array.from(new Set(transitions.map(t => t.current_state)));
         setStates(uniqueStates);
-        // If startState is not in the updated list, reset it
+        // If the current startState is no longer valid, reset it
         if (!uniqueStates.includes(startState)) {
             setStartState('');
         }

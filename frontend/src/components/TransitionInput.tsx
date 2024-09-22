@@ -15,43 +15,91 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
         write_symbol: '',
         direction: 'r',
         new_state: '',
+        breakpoint: false,
     });
 
     const [bulkInput, setBulkInput] = useState<string>('');
     const [bulkErrors, setBulkErrors] = useState<string[]>([]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+        const { name, value, type } = e.target;
+
+        let newValue: string | boolean;
+        if (type === 'checkbox') {
+            newValue = (e.target as HTMLInputElement).checked;
+        } else {
+            newValue = value;
+        }
+
         setTransition(prev => ({
             ...prev,
-            [name]: value,
+            [name]: newValue,
         }));
     };
 
     const addTransition = () => {
-        if (
-            transition.current_state &&
-            transition.read_symbol &&
-            transition.write_symbol &&
-            transition.new_state
-        ) {
-            const key = `${transition.current_state},${transition.read_symbol}`;
-            if (transitions.some(t => `${t.current_state},${t.read_symbol}` === key)) {
-                alert(`Duplicate transition for state-symbol pair: (${transition.current_state}, ${transition.read_symbol})`);
-                return;
-            }
+        // Validation based on the specified syntax rules
+        const { current_state, read_symbol, write_symbol, direction, new_state } = transition;
 
-            setTransitions([...transitions, transition]);
-            setTransition({
-                current_state: '',
-                read_symbol: '',
-                write_symbol: '',
-                direction: 'r',
-                new_state: '',
-            });
-        } else {
+        if (
+            !current_state ||
+            !read_symbol ||
+            !write_symbol ||
+            !direction ||
+            !new_state
+        ) {
             alert('Please fill in all fields for the transition.');
+            return;
         }
+
+        // Symbols cannot contain ';' or whitespace
+        const invalidSymbols = /[; ]/;
+        if (read_symbol !== '*' && invalidSymbols.test(read_symbol)) {
+            alert("Read Symbol cannot contain ';' or whitespace.");
+            return;
+        }
+        if (write_symbol !== '*' && invalidSymbols.test(write_symbol)) {
+            alert("Write Symbol cannot contain ';' or whitespace.");
+            return;
+        }
+
+        // State names cannot contain ';' or whitespace
+        const invalidStates = /[; ]/;
+        if (invalidStates.test(current_state)) {
+            alert("Current State cannot contain ';' or whitespace.");
+            return;
+        }
+        if (invalidStates.test(new_state)) {
+            alert("New State cannot contain ';' or whitespace.");
+            return;
+        }
+
+        // Direction validation is already handled by the select input
+
+        // Enforce determinism: no duplicate (current_state, read_symbol) pairs unless using wildcards
+        const key = `${current_state},${read_symbol}`;
+        if (
+            transitions.some(
+                t =>
+                    (t.current_state === current_state || t.current_state === '*') &&
+                    (t.read_symbol === read_symbol || t.read_symbol === '*')
+            )
+        ) {
+            alert(`Duplicate transition for state-symbol pair: (${current_state}, ${read_symbol})`);
+            return;
+        }
+
+        setTransitions([...transitions, { ...transition }]);
+
+        // Reset the input fields
+        setTransition({
+            current_state: '',
+            read_symbol: '',
+            write_symbol: '',
+            direction: 'r',
+            new_state: '',
+            breakpoint: false,
+        });
     };
 
     const removeTransition = (index: number) => {
@@ -68,7 +116,7 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
 
         lines.forEach((line, index) => {
             const trimmedLine = line.trim();
-            if (trimmedLine === '' || trimmedLine.startsWith('#')) {
+            if (trimmedLine === '' || trimmedLine.startsWith(';')) {
                 // Ignore empty lines and comments
                 return;
             }
@@ -81,11 +129,35 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
 
             const [current_state, read_symbol, write_symbol, direction, new_state] = parts;
 
+            // Validate direction
             if (!['l', 'r', '*'].includes(direction)) {
                 errors.push(`Line ${index + 1}: Invalid direction '${direction}'. Use 'l', 'r', or '*'.`);
                 return;
             }
 
+            // Symbols cannot contain ';' or whitespace
+            const invalidSymbols = /[; ]/;
+            if (read_symbol !== '*' && invalidSymbols.test(read_symbol)) {
+                errors.push(`Line ${index + 1}: Read Symbol cannot contain ';' or whitespace.`);
+                return;
+            }
+            if (write_symbol !== '*' && invalidSymbols.test(write_symbol)) {
+                errors.push(`Line ${index + 1}: Write Symbol cannot contain ';' or whitespace.`);
+                return;
+            }
+
+            // State names cannot contain ';' or whitespace
+            const invalidStates = /[; ]/;
+            if (invalidStates.test(current_state)) {
+                errors.push(`Line ${index + 1}: Current State cannot contain ';' or whitespace.`);
+                return;
+            }
+            if (invalidStates.test(new_state)) {
+                errors.push(`Line ${index + 1}: New State cannot contain ';' or whitespace.`);
+                return;
+            }
+
+            // Enforce determinism
             const key = `${current_state},${read_symbol}`;
             if (existingKeys.includes(key) || newTransitions.some(t => `${t.current_state},${t.read_symbol}` === key)) {
                 errors.push(`Line ${index + 1}: Duplicate transition for state-symbol pair '${key}'.`);
@@ -98,6 +170,7 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
                 write_symbol,
                 direction: direction as 'l' | 'r' | '*',
                 new_state,
+                breakpoint: false, // Bulk transitions do not include breakpoints
             });
         });
 
@@ -178,6 +251,18 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
                         className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
+                <div className="flex flex-col items-center mt-5">
+                    <label className="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="breakpoint"
+                            checked={transition.breakpoint}
+                            onChange={handleChange}
+                            className="mr-2"
+                        />
+                        Breakpoint
+                    </label>
+                </div>
                 <div className="flex flex-col mt-5">
                     <button
                         onClick={addTransition}
@@ -194,7 +279,7 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
                 <textarea
                     value={bulkInput}
                     onChange={(e) => setBulkInput(e.target.value)}
-                    placeholder={`Enter transitions here, one per line.\nFormat: <current_state> <read_symbol> <write_symbol> <direction> <new_state>\nExample:\nstart 1 0 l carry`}
+                    placeholder={`Enter transitions here, one per line.\nFormat: <current_state> <read_symbol> <write_symbol> <direction> <new_state>\nExample:\nstart 1 0 r carry`}
                     className="w-full h-32 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                 ></textarea>
                 <button
@@ -223,7 +308,10 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
                     <ul className="space-y-2 max-h-60 overflow-y-auto">
                         {transitions.map((t, index) => (
                             <li key={index} className="flex justify-between items-center bg-gray-100 p-2 rounded">
-                                <span className="font-medium">{`${t.current_state} ${t.read_symbol} ${t.write_symbol} ${t.direction} ${t.new_state}`}</span>
+                                <span className="font-medium">
+                                    {`${t.current_state} ${t.read_symbol} ${t.write_symbol} ${t.direction} ${t.new_state}`}
+                                    {t.breakpoint && <span className="text-red-500 font-bold"> !</span>}
+                                </span>
                                 <button
                                     onClick={() => removeTransition(index)}
                                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
