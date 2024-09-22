@@ -1,16 +1,16 @@
 // frontend/src/App.tsx
 
-import React, { useState } from 'react';
-import TransitionInputComponent from './components/TransitionInput';
-import InputStringComponent from './components/InputString';
-import ControlsComponent from './components/Controls';
-import TapeDisplay from './components/TapeDisplay';
-import StatusDisplay from './components/StatusDisplay';
-import StartStateSelector from './components/StartStateSelector';
-import TransitionHistory from './components/TransitionHistory';
-import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
+import { useState } from 'react';
 import api from './api';
-import { TransitionInput, StepOutput, TransitionTaken } from './types';
+import ControlsComponent from './components/Controls';
+import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
+import InputStringComponent from './components/InputString';
+import StartStateSelector from './components/StartStateSelector';
+import StatusDisplay from './components/StatusDisplay';
+import TapeDisplay from './components/TapeDisplay';
+import TransitionHistory from './components/TransitionHistory';
+import TransitionInputComponent from './components/TransitionInput';
+import { StepOutput, TransitionInput, TransitionTaken } from './types';
 
 function App() {
     const [transitions, setTransitions] = useState<TransitionInput[]>([]);
