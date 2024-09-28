@@ -8,7 +8,6 @@
 
 - [Turing Machine Simulator](#turing-machine-simulator)
   - [Table of Contents](#table-of-contents)
-  - [Features](#features)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
     - [Backend Setup](#backend-setup)
@@ -20,18 +19,6 @@
     - [Configuring the Input String](#configuring-the-input-string)
     - [Running the Simulation](#running-the-simulation)
     - [Viewing Tape and Status](#viewing-tape-and-status)
-
----
-
-## Features
-
-- **Transition Configuration**: Add Turing machine transitions individually or in bulk via a text area.
-- **Input String Setup**: Define the initial string on the tape.
-- **Simulation Controls**: Start, step through, run continuously, and reset the simulation.
-- **Tape Visualisation**: Visually represents the tape with the head position highlighted.
-- **Status Display**: Shows the current state and the number of steps executed.
-- **Responsive Design**: Optimised for various screen sises using Tailwind CSS.
-- **Error Handling**: Provides feedback for invalid transitions or simulation errors.
 
 ---
 
