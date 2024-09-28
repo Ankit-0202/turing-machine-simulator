@@ -8,6 +8,7 @@ CORS(app)  # Enable CORS if frontend is on a different domain/port
 # Global instance of TuringMachine
 tm = None
 
+
 @app.route('/initialise', methods=['POST'])
 def initialise():
     global tm
