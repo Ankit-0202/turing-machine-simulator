@@ -8,14 +8,14 @@ CORS(app)  # Enable CORS if frontend is on a different domain/port
 # Global instance of TuringMachine
 tm = None
 
-@app.route('/initialize', methods=['POST'])
-def initialize():
+@app.route('/initialise', methods=['POST'])
+def initialise():
     global tm
     data = request.get_json()
     transitions = data.get('transitions', [])
     input_string = data.get('input_string', '_')
     start_state = data.get('start_state', 'start')
-    machine_type = data.get('machine_type', 'standard').lower()  # Normalize to lowercase
+    machine_type = data.get('machine_type', 'standard').lower()  # Normalise to lowercase
 
     try:
         tm = TuringMachine(
@@ -24,7 +24,7 @@ def initialize():
             start_state=start_state,
             machine_type=machine_type
         )
-        return jsonify({"message": "Turing Machine initialized successfully."}), 200
+        return jsonify({"message": "Turing Machine initialised successfully."}), 200
     except ValueError as ve:
         return jsonify({"detail": str(ve)}), 400
 
@@ -32,7 +32,7 @@ def initialize():
 def step():
     global tm
     if not tm:
-        return jsonify({"detail": "Turing Machine is not initialized."}), 400
+        return jsonify({"detail": "Turing Machine is not initialised."}), 400
 
     result = tm.step()
     if not result:
@@ -44,7 +44,7 @@ def step():
 def run():
     global tm
     if not tm:
-        return jsonify({"detail": "Turing Machine is not initialized."}), 400
+        return jsonify({"detail": "Turing Machine is not initialised."}), 400
 
     result = tm.run()
     if not result:
@@ -58,10 +58,10 @@ def reset():
     data = request.get_json()
     input_string = data.get('input_string', '_')
     start_state = data.get('start_state', 'start')
-    machine_type = data.get('machine_type', 'standard').lower()  # Normalize to lowercase
+    machine_type = data.get('machine_type', 'standard').lower()  # Normalise to lowercase
 
     if not tm:
-        return jsonify({"detail": "Turing Machine is not initialized."}), 400
+        return jsonify({"detail": "Turing Machine is not initialised."}), 400
 
     try:
         tm.reset(input_string=input_string, start_state=start_state, machine_type=machine_type)

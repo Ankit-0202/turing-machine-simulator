@@ -16,7 +16,7 @@ class Transition:
 class TuringMachine:
     def __init__(self, transitions: List[Dict], input_string: str, start_state: str = 'start', tape_symbol: str = '_', machine_type: str = 'standard'):
         """
-        Initialize the Turing Machine.
+        Initialise the Turing Machine.
 
         :param transitions: List of transitions as dictionaries with keys:
                             'current_state', 'read_symbol', 'write_symbol', 'direction', 'new_state', 'breakpoint' (optional)
@@ -32,8 +32,8 @@ class TuringMachine:
         self.steps = 0
         self.halted = False
         self.history = []  # List of transitions taken
-        self.machine_type = machine_type.lower()  # Normalize to lowercase
-        logger.debug(f"Initialized TuringMachine with type: {self.machine_type}")
+        self.machine_type = machine_type.lower()  # Normalise to lowercase
+        logger.debug(f"Initialised TuringMachine with type: {self.machine_type}")
 
     def parse_transitions(self, transitions: List[Dict]) -> List[Tuple[str, str, Transition]]:
         """
@@ -294,5 +294,5 @@ class TuringMachine:
         self.steps = 0
         self.halted = False
         self.history = []
-        self.machine_type = machine_type.lower()  # Normalize to lowercase
+        self.machine_type = machine_type.lower()  # Normalise to lowercase
         logger.debug(f"Reset TuringMachine to type: {self.machine_type}")

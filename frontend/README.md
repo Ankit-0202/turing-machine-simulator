@@ -275,7 +275,7 @@ The Flask backend exposes the following API endpoints for the simulator's functi
 
 ### **1. Initialise the Turing Machine**
 
-- **Endpoint:** `/initialize`
+- **Endpoint:** `/initialise`
 - **Method:** `POST`
 - **Description:** Initialises the Turing machine with the provided transitions and input string.
 - **Request Body:**

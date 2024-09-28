@@ -36,7 +36,7 @@ function App() {
         }
 
         try {
-            await api.post('/initialize', {
+            await api.post('/initialise', {
                 transitions: transitions.map(t => ({
                     current_state: t.current_state,
                     read_symbol: t.read_symbol,
@@ -61,7 +61,7 @@ function App() {
             setIsHalted(false);
             setTransitionHistory([]);
         } catch (error: any) {
-            alert(error.response?.data?.detail || 'Error initializing Turing Machine.');
+            alert(error.response?.data?.detail || 'Error initialising Turing Machine.');
             console.error(error);
         }
     };
@@ -158,6 +158,13 @@ function App() {
                     <TapeDisplay tape={tape} head={head} machineType={machineType} /> {/* Pass machineType */}
                     <StatusDisplay currentState={currentState} steps={steps} />
                     <TransitionHistory transitions={transitionHistory} />
+                </div>
+
+                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
+                <div className="space-y-6">
+                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
+                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
+                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                     <ControlsComponent
                         onStart={handleStart}
                         onStep={handleStep}
@@ -166,13 +173,6 @@ function App() {
                         isStarted={isStarted}
                         isHalted={isHalted}
                     />
-                </div>
-
-                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
-                <div className="space-y-6">
-                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
-                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
-                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                 </div>
             </main>
 
