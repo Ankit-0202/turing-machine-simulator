@@ -61,8 +61,12 @@ build-executable: install-backend install-frontend
 	@echo "Copying frontend build to backend's static directory..."
 	@rm -rf $(BACKEND_DIR)/static && cp -r $(FRONTEND_DIR)/build $(BACKEND_DIR)/static
 	@echo "Packaging backend with frontend into an executable..."
-	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile app.py
+	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile --hidden-import=_socket --hidden-import=_posixsubprocess app.py
 	@echo "Executable built successfully. Check the 'dist' folder inside the backend directory."
+
+# Run the executable
+run-executable:
+	./backend/dist/app
 
 # Clean the executable build files
 clean-executable:
@@ -72,3 +76,6 @@ clean-executable:
 	@rm -rf $(BACKEND_DIR)/__pycache__
 	@rm -rf $(BACKEND_DIR)/*.spec
 	@echo "Cleaned up successfully."
+
+# Clean the executable build files
+full-build: clean-executable build-executable run-executable
