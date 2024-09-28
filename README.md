@@ -27,7 +27,7 @@
 Before you begin, ensure you have met the following requirements:
 
 - **Node.js and npm**: [Download and install Node.js](https://nodejs.org/) (includes npm).
-- **Python 3.7+**: [Download and install Python](https://www.python.org/downloads/).
+- **Python+**: [Download and install Python](https://www.python.org/downloads/).
 - **Git**: [Download and install Git](https://git-scm.com/downloads).
 - **Basic Knowledge**: Familiarity with React, TypeScript, Flask, and Tailwind CSS is beneficial.
 
