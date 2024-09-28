@@ -1,5 +1,3 @@
-# backend/app.py
-
 import os
 from flask import Flask, request, jsonify
 from turing_machine import TuringMachine
@@ -86,6 +84,7 @@ def reset():
 
 
 if __name__ == "__main__":
-    # Set default port to 5001 to avoid conflicts
+    # Set default port to 5001 to avoid conflicts and disable debug mode
     port = int(os.environ.get("PORT", 5001))
-    app.run(debug=True, port=port)
+    debug_mode = False  # Disable debug mode for production
+    app.run(debug=debug_mode, port=port)
