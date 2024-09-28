@@ -10,7 +10,7 @@ VENV_DIR=$(BACKEND_DIR)/venv
 # Shell
 SHELL := /bin/bash
 
-.PHONY: all run backend frontend install install-backend install-frontend stop build-executable clean-executable
+.PHONY: all run backend frontend install install-backend install-frontend stop build-executable run-executable clean-executable full-build
 
 # Default target
 all: run
@@ -61,7 +61,12 @@ build-executable: install-backend install-frontend
 	@echo "Copying frontend build to backend's static directory..."
 	@rm -rf $(BACKEND_DIR)/static && cp -r $(FRONTEND_DIR)/build $(BACKEND_DIR)/static
 	@echo "Packaging backend with frontend into an executable..."
-	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile --hidden-import=_socket --hidden-import=_posixsubprocess app.py
+	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile \
+	--hidden-import=_socket \
+	--hidden-import=_posixsubprocess \
+	--hidden-import=array \
+	--hidden-import=pyexpat \
+	app.py
 	@echo "Executable built successfully. Check the 'dist' folder inside the backend directory."
 
 # Run the executable
