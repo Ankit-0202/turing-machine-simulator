@@ -1,5 +1,3 @@
-// frontend/src/components/TransitionInput.tsx
-
 import React, { useState } from 'react';
 import { TransitionInput } from '../types';
 
@@ -38,7 +36,7 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
     };
 
     const addTransition = () => {
-        // Validation based on the specified syntax rules
+        // Validation based on the specified syntax rules (Morphett)
         const { current_state, read_symbol, write_symbol, direction, new_state } = transition;
 
         if (
@@ -75,9 +73,6 @@ const TransitionInputComponent: React.FC<Props> = ({ transitions, setTransitions
         }
 
         // Direction validation is already handled by the select input
-
-        // Enforce determinism: no duplicate (current_state, read_symbol) pairs unless using wildcards
-        const key = `${current_state},${read_symbol}`;
         if (
             transitions.some(
                 t =>

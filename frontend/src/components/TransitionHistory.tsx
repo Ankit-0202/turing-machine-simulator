@@ -1,5 +1,3 @@
-// frontend/src/components/TransitionHistory.tsx
-
 import React from 'react';
 import { TransitionTaken } from '../types';
 

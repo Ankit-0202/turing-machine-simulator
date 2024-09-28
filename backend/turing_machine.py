@@ -1,5 +1,3 @@
-# backend/turing_machine.py
-
 from typing import Dict, Optional, List, Tuple
 from dataclasses import dataclass
 

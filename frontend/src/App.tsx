@@ -1,9 +1,7 @@
-// frontend/src/App.tsx
-
 import { useState } from 'react';
 import api from './api';
 import ControlsComponent from './components/Controls';
-import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
+import DarkModeToggle from './components/DarkModeToggle';
 import InputStringComponent from './components/InputString';
 import StartStateSelector from './components/StartStateSelector';
 import StatusDisplay from './components/StatusDisplay';
@@ -157,13 +155,6 @@ function App() {
                     <TapeDisplay tape={tape} head={head} />
                     <StatusDisplay currentState={currentState} steps={steps} />
                     <TransitionHistory transitions={transitionHistory} />
-                </div>
-
-                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
-                <div className="space-y-6">
-                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
-                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
-                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                     <ControlsComponent
                         onStart={handleStart}
                         onStep={handleStep}
@@ -172,6 +163,13 @@ function App() {
                         isStarted={isStarted}
                         isHalted={isHalted}
                     />
+                </div>
+
+                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
+                <div className="space-y-6">
+                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
+                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
+                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                 </div>
             </main>
 

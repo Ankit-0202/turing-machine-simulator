@@ -1,5 +1,3 @@
-// frontend/src/components/StartStateSelector.tsx
-
 import React, { useEffect, useState } from 'react';
 import { TransitionInput } from '../types';
 
