@@ -1,0 +1,49 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python environment
+      run: sudo apt-get install python3-venv
+
+    - name: Install Backend Dependencies
+      run: |
+        cd backend
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Install Frontend Dependencies
+      run: |
+        cd frontend
+        npm install
+
+    - name: Run Backend & Frontend
+      run: |
+        cd backend
+        source venv/bin/activate
+        python app.py &
+        cd ../frontend
+        npm start &
+        wait
+
+    - name: Build Executable
+      run: |
+        cd backend
+        source venv/bin/activate
+        pyinstaller --onefile app.py
+
+    - name: Clean Executable Build Files
+      run: |
+        cd backend
+        rm -rf dist build __pycache__ *.spec
