@@ -2,11 +2,25 @@
 
 **Turing Machine Simulator** is a web-based application that allows users to design, configure, and simulate Turing machines. Leveraging a Flask backend and a React TypeScript frontend styled with Tailwind CSS, this simulator provides an intuitive interface for both educational purposes and computational explorations.
 
+## **Executable Download**
+
+For users who prefer not to clone the repository and set up the environment manually, a pre-built executable is available for download. This executable bundles both the backend and frontend, allowing you to run the simulator seamlessly on your local machine.
+
+- **Download Executable:** [Download from GitHub Releases](https://github.com/Ankit-0202/turing-machine-simulator/releases)
+
+- **Running the Executable:**
+  1. **Download:** Navigate to the [Releases](https://github.com/Ankit-0202/turing-machine-simulator/releases) section of this repository.
+  2. **Extract:** Download the latest release zip file and extract its contents.
+  3. **Run:** Execute the binary file (`app.exe` for Windows or `app` for macOS/Linux) to launch the Turing Machine Simulator.
+
+*Note: Ensure you have the necessary permissions to run executables on your system.*
+
 ---
 
 ## Table of Contents
 
 - [Turing Machine Simulator](#turing-machine-simulator)
+  - [**Executable Download**](#executable-download)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)

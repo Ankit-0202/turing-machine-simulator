@@ -10,7 +10,7 @@ VENV_DIR=$(BACKEND_DIR)/venv
 # Shell
 SHELL := /bin/bash
 
-.PHONY: all run backend frontend install install-backend install-frontend stop
+.PHONY: all run backend frontend install install-backend install-frontend build-executable stop
 
 # Default target
 all: run
@@ -46,6 +46,19 @@ backend:
 frontend:
 	@echo "Starting frontend..."
 	@cd $(FRONTEND_DIR) && npm start
+
+# Build the executable
+build-executable:
+	@echo "Building the frontend..."
+	@cd $(FRONTEND_DIR) && npm run build
+	@echo "Copying frontend build to backend static directory..."
+	@rm -rf $(BACKEND_DIR)/static && cp -R $(FRONTEND_DIR)/build $(BACKEND_DIR)/static
+	@echo "Installing PyInstaller..."
+	@cd $(BACKEND_DIR) && source venv/bin/activate && pip install pyinstaller
+	@echo "Building the backend executable with PyInstaller..."
+	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile app.py
+	@echo "Executable built successfully. You can find it in $(BACKEND_DIR)/dist/app"
+	@echo "Please upload the executable to GitHub Releases for users to download."
 
 # Stop all background processes
 stop:
