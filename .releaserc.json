@@ -1,0 +1,25 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "backend/dist/app",
+            "label": "Turing Machine Simulator Executable (Linux/macOS)"
+          },
+          {
+            "path": "backend/dist/app.exe",
+            "label": "Turing Machine Simulator Executable (Windows)"
+          }
+        ]
+      }
+    ]
+  ],
+  "verifyConditions": ["@semantic-release/github"],
+  "prepare": [],
+  "publish": ["@semantic-release/github"]
+}

@@ -208,7 +208,7 @@ Desktop.ini
 # ======================================
 
 # GitHub Actions
-.github/workflows/build.yml
+.github/workflows/release.yml
 
 # Executables
 backend/dist/app
