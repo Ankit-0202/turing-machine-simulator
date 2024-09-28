@@ -1,5 +1,3 @@
-// frontend/src/components/TapeDisplay.tsx
-
 import React from 'react';
 import { TapeDisplayProps, MachineType } from '../types';
 

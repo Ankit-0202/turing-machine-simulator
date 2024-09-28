@@ -1,5 +1,3 @@
-// frontend/src/App.tsx
-
 import React, { useState } from 'react';
 import TransitionInputComponent from './components/TransitionInput';
 import InputStringComponent from './components/InputString';
@@ -8,8 +6,8 @@ import TapeDisplay from './components/TapeDisplay';
 import StatusDisplay from './components/StatusDisplay';
 import StartStateSelector from './components/StartStateSelector';
 import TransitionHistory from './components/TransitionHistory';
-import MachineTypeSelector from './components/MachineTypeSelector'; // Import the MachineTypeSelector component
-import DarkModeToggle from './components/DarkModeToggle'; // Import the DarkModeToggle component
+import MachineTypeSelector from './components/MachineTypeSelector';
+import DarkModeToggle from './components/DarkModeToggle';
 import api from './api';
 import { TransitionInput, StepOutput, TransitionTaken, MachineType } from './types';
 
@@ -24,7 +22,7 @@ function App() {
     const [isHalted, setIsHalted] = useState<boolean>(false);
     const [startState, setStartState] = useState<string>('');
     const [transitionHistory, setTransitionHistory] = useState<TransitionTaken[]>([]);
-    const [machineType, setMachineType] = useState<MachineType>(MachineType.STANDARD); // Add machine type state
+    const [machineType, setMachineType] = useState<MachineType>(MachineType.STANDARD);
 
     const handleStart = async () => {
         if (transitions.length === 0) {
@@ -49,9 +47,8 @@ function App() {
                 })),
                 input_string: inputString || '_',
                 start_state: startState,
-                machine_type: machineType, // Send machine type to backend
+                machine_type: machineType,
             });
-            // Initialize UI without performing the first step
             setTape(
                 inputString.includes('*')
                     ? inputString.replace('*', '_')
@@ -151,7 +148,7 @@ function App() {
             <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
                 <h1 className="text-3xl font-bold text-center flex-1">Turing Machine Simulator</h1>
                 <MachineTypeSelector selectedType={machineType} setSelectedType={setMachineType} /> {/* Add MachineTypeSelector */}
-                <DarkModeToggle /> {/* Include the DarkModeToggle component */}
+                <DarkModeToggle />
             </header>
 
             {/* Main Content */}
@@ -161,13 +158,6 @@ function App() {
                     <TapeDisplay tape={tape} head={head} machineType={machineType} /> {/* Pass machineType */}
                     <StatusDisplay currentState={currentState} steps={steps} />
                     <TransitionHistory transitions={transitionHistory} />
-                </div>
-
-                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
-                <div className="space-y-6">
-                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
-                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
-                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                     <ControlsComponent
                         onStart={handleStart}
                         onStep={handleStep}
@@ -176,6 +166,13 @@ function App() {
                         isStarted={isStarted}
                         isHalted={isHalted}
                     />
+                </div>
+
+                {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
+                <div className="space-y-6">
+                    <TransitionInputComponent transitions={transitions} setTransitions={setTransitions} />
+                    <StartStateSelector transitions={transitions} startState={startState} setStartState={setStartState} />
+                    <InputStringComponent inputString={inputString} setInputString={setInputString} />
                 </div>
             </main>
 

@@ -1,5 +1,3 @@
-// frontend/src/components/StatusDisplay.tsx
-
 import React from 'react';
 
 interface Props {

@@ -28,7 +28,7 @@
     - [Running the Simulation](#running-the-simulation)
     - [Viewing Tape and Status](#viewing-tape-and-status)
   - [API Endpoints](#api-endpoints)
-    - [**1. Initialize the Turing Machine**](#1-initialize-the-turing-machine)
+    - [**1. Initialise the Turing Machine**](#1-initialise-the-turing-machine)
     - [**2. Execute a Single Step**](#2-execute-a-single-step)
     - [**3. Run Simulation Until Halt**](#3-run-simulation-until-halt)
     - [**4. Reset the Turing Machine**](#4-reset-the-turing-machine)
@@ -42,9 +42,9 @@
 - **Transition Configuration**: Add Turing machine transitions individually or in bulk via a text area.
 - **Input String Setup**: Define the initial string on the tape.
 - **Simulation Controls**: Start, step through, run continuously, and reset the simulation.
-- **Tape Visualization**: Visually represents the tape with the head position highlighted.
+- **Tape Visualisation**: Visually represents the tape with the head position highlighted.
 - **Status Display**: Shows the current state and the number of steps executed.
-- **Responsive Design**: Optimized for various screen sizes using Tailwind CSS.
+- **Responsive Design**: Optimised for various screen sises using Tailwind CSS.
 - **Error Handling**: Provides feedback for invalid transitions or simulation errors.
 
 ---
@@ -237,7 +237,7 @@ Transitions define how the Turing machine operates. You can add transitions indi
 
 1. **Start Simulation**
 
-    - Click the **Start Simulation** button to initialize the Turing machine with the defined transitions and input string.
+    - Click the **Start Simulation** button to initialise the Turing machine with the defined transitions and input string.
     - The machine performs the first transition automatically.
 
 2. **Step Through Transitions**
@@ -273,11 +273,11 @@ Transitions define how the Turing machine operates. You can add transitions indi
 
 The Flask backend exposes the following API endpoints for the simulator's functionality:
 
-### **1. Initialize the Turing Machine**
+### **1. Initialise the Turing Machine**
 
 - **Endpoint:** `/initialize`
 - **Method:** `POST`
-- **Description:** Initializes the Turing machine with the provided transitions and input string.
+- **Description:** Initialises the Turing machine with the provided transitions and input string.
 - **Request Body:**
 
     ```json
@@ -300,7 +300,7 @@ The Flask backend exposes the following API endpoints for the simulator's functi
 
     ```json
     {
-        "message": "Turing Machine initialized successfully."
+        "message": "Turing Machine initialised successfully."
     }
     ```
 

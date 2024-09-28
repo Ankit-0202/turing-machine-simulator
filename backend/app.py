@@ -1,5 +1,3 @@
-# backend/app.py
-
 from flask import Flask, request, jsonify
 from turing_machine import TuringMachine
 from flask_cors import CORS

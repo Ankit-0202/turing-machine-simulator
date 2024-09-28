@@ -1,5 +1,3 @@
-// frontend/src/components/InputString.tsx
-
 import React from 'react';
 
 interface Props {
