@@ -1,3 +1,6 @@
+# backend/app.py
+
+import os
 from flask import Flask, request, jsonify
 from turing_machine import TuringMachine
 from flask_cors import CORS
@@ -83,4 +86,6 @@ def reset():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Set default port to 5001 to avoid conflicts
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=True, port=port)
