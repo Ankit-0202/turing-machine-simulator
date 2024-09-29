@@ -1,14 +1,12 @@
-// frontend/src/components/TransitionInput/TransitionInput.component.tsx
-
 import React, { useState } from 'react'
-import { TransitionInputComponentProps } from './TransitionInput.model'
-import { TransitionInput } from '../../types'
+import { TransitionInputProps } from './TransitionInput.model'
+import { TransitionInput } from 'types'
 
-const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
+const TransitionInputComponent: React.FC<TransitionInputProps> = ({
   transitions,
   setTransitions
 }) => {
-  const [newTransition, setNewTransition] = useState<TransitionInput>({
+  const [transition, setTransition] = useState<TransitionInput>({
     current_state: '',
     read_symbol: '',
     write_symbol: '',
@@ -18,30 +16,31 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
   })
 
   const [bulkInput, setBulkInput] = useState<string>('')
+  const [bulkErrors, setBulkErrors] = useState<string[]>([])
 
-  // Handle input changes with type guards
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target
-    let newValue: string | boolean = value
 
-    if (type === 'checkbox' && e.target instanceof HTMLInputElement) {
-      newValue = e.target.checked
+    let newValue: string | boolean
+    if (type === 'checkbox') {
+      newValue = (e.target as HTMLInputElement).checked
+    } else {
+      newValue = value
     }
 
-    setNewTransition((prev) => ({
+    setTransition((prev) => ({
       ...prev,
       [name]: newValue
     }))
   }
 
   const addTransition = () => {
-    // Basic validation
+    // Validation based on the specified syntax rules (Morphett)
     const { current_state, read_symbol, write_symbol, direction, new_state } =
-      newTransition
+      transition
+
     if (
       !current_state ||
       !read_symbol ||
@@ -49,15 +48,50 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
       !direction ||
       !new_state
     ) {
-      alert('Please fill in all required fields for the transition.')
+      alert('Please fill in all fields for the transition.')
       return
     }
 
-    // Prevent adding duplicate transitions (optional)
-    setTransitions([...transitions, newTransition])
+    // Symbols cannot contain ';' or whitespace
+    const invalidSymbols = /[; ]/
+    if (read_symbol !== '*' && invalidSymbols.test(read_symbol)) {
+      alert("Read Symbol cannot contain ';' or whitespace.")
+      return
+    }
+    if (write_symbol !== '*' && invalidSymbols.test(write_symbol)) {
+      alert("Write Symbol cannot contain ';' or whitespace.")
+      return
+    }
 
-    // Reset the form
-    setNewTransition({
+    // State names cannot contain ';' or whitespace
+    const invalidStates = /[; ]/
+    if (invalidStates.test(current_state)) {
+      alert("Current State cannot contain ';' or whitespace.")
+      return
+    }
+    if (invalidStates.test(new_state)) {
+      alert("New State cannot contain ';' or whitespace.")
+      return
+    }
+
+    // Direction validation is already handled by the select input
+    if (
+      transitions.some(
+        (t) =>
+          (t.current_state === current_state || t.current_state === '*') &&
+          (t.read_symbol === read_symbol || t.read_symbol === '*')
+      )
+    ) {
+      alert(
+        `Duplicate transition for state-symbol pair: (${current_state}, ${read_symbol})`
+      )
+      return
+    }
+
+    setTransitions([...transitions, { ...transition }])
+
+    // Reset the input fields
+    setTransition({
       current_state: '',
       read_symbol: '',
       write_symbol: '',
@@ -68,229 +102,264 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
   }
 
   const removeTransition = (index: number) => {
-    const updated = transitions.filter((_, i) => i !== index)
-    setTransitions(updated)
+    const newTransitions = [...transitions]
+    newTransitions.splice(index, 1)
+    setTransitions(newTransitions)
   }
 
-  const handleBulkAdd = () => {
-    /**
-     * Define the expected format:
-     * Each line should contain one tuple of the form:
-     * '<current state> <current symbol> <new symbol> <direction> <new state> [!]'
-     *
-     * Example:
-     * start 1 1 l start
-     * start _ _ * halt-accept !
-     *
-     * Notes:
-     * - '*' can be used as a wildcard in <current state> or <current symbol>
-     * - '*' in <new symbol> or <new state> means 'no change'
-     * - '!' at the end sets a breakpoint
-     * - Anything after ';' is a comment and is ignored
-     */
+  const parseBulkTransitions = () => {
+    const lines = bulkInput.split('\n')
+    const newTransitions: TransitionInput[] = []
+    const errors: string[] = []
+    const existingKeys = transitions.map(
+      (t) => `${t.current_state},${t.read_symbol}`
+    )
 
-    const lines = bulkInput
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0)
-    const parsedTransitions: TransitionInput[] = []
-
-    for (let i = 0; i < lines.length; i++) {
-      let line = lines[i]
-
-      // Remove comments
-      const commentIndex = line.indexOf(';')
-      if (commentIndex !== -1) {
-        line = line.substring(0, commentIndex).trim()
-      }
-
-      if (line.length === 0) {
-        continue // Entire line was a comment
-      }
-
-      const parts = line.split(/\s+/) // Split by whitespace
-      if (parts.length < 5) {
-        alert(`Invalid format in line ${i + 1}: "${lines[i]}"`)
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine === '' || trimmedLine.startsWith(';')) {
+        // Ignore empty lines and comments
         return
       }
 
-      const [
-        current_state,
-        read_symbol,
-        write_symbol,
-        direction,
-        new_state,
-        ...rest
-      ] = parts
+      const parts = trimmedLine.split(/\s+/)
+      if (parts.length !== 5) {
+        errors.push(`Line ${index + 1}: Incorrect number of fields.`)
+        return
+      }
+
+      const [current_state, read_symbol, write_symbol, direction, new_state] =
+        parts
 
       // Validate direction
       if (!['l', 'r', '*'].includes(direction)) {
-        alert(`Invalid direction "${direction}" in line ${i + 1}`)
+        errors.push(
+          `Line ${
+            index + 1
+          }: Invalid direction '${direction}'. Use 'l', 'r', or '*'.`
+        )
         return
       }
 
-      // Handle breakpoint
-      let breakpoint = false
-      if (rest.includes('!')) {
-        breakpoint = true
+      // Symbols cannot contain ';' or whitespace
+      const invalidSymbols = /[; ]/
+      if (read_symbol !== '*' && invalidSymbols.test(read_symbol)) {
+        errors.push(
+          `Line ${index + 1}: Read Symbol cannot contain ';' or whitespace.`
+        )
+        return
       }
-
-      // Validate symbols (cannot use ';', except in specific contexts, '_' as blank)
-      const invalidSymbols = new Set([';'])
-      if (read_symbol !== '*' && invalidSymbols.has(read_symbol)) {
-        alert(`Invalid read_symbol "${read_symbol}" in line ${i + 1}`)
+      if (write_symbol !== '*' && invalidSymbols.test(write_symbol)) {
+        errors.push(
+          `Line ${index + 1}: Write Symbol cannot contain ';' or whitespace.`
+        )
         return
       }
 
-      if (write_symbol !== '*' && invalidSymbols.has(write_symbol)) {
-        alert(`Invalid write_symbol "${write_symbol}" in line ${i + 1}`)
+      // State names cannot contain ';' or whitespace
+      const invalidStates = /[; ]/
+      if (invalidStates.test(current_state)) {
+        errors.push(
+          `Line ${index + 1}: Current State cannot contain ';' or whitespace.`
+        )
+        return
+      }
+      if (invalidStates.test(new_state)) {
+        errors.push(
+          `Line ${index + 1}: New State cannot contain ';' or whitespace.`
+        )
         return
       }
 
-      // Validate state names (cannot contain ';' or whitespace)
-      const invalidStateChars = new Set([';', ' ', '\t'])
-      for (const char of current_state) {
-        if (invalidStateChars.has(char)) {
-          alert(
-            `Invalid character "${char}" in current_state "${current_state}" in line ${
-              i + 1
-            }`
-          )
-          return
-        }
+      // Enforce determinism
+      const key = `${current_state},${read_symbol}`
+      if (
+        existingKeys.includes(key) ||
+        newTransitions.some(
+          (t) => `${t.current_state},${t.read_symbol}` === key
+        )
+      ) {
+        errors.push(
+          `Line ${
+            index + 1
+          }: Duplicate transition for state-symbol pair '${key}'.`
+        )
+        return
       }
 
-      for (const char of new_state) {
-        if (invalidStateChars.has(char)) {
-          alert(
-            `Invalid character "${char}" in new_state "${new_state}" in line ${
-              i + 1
-            }`
-          )
-          return
-        }
-      }
-
-      parsedTransitions.push({
+      newTransitions.push({
         current_state,
         read_symbol,
         write_symbol,
         direction: direction as 'l' | 'r' | '*',
         new_state,
-        breakpoint
+        breakpoint: false // Bulk transitions do not include breakpoints
       })
+    })
+
+    if (errors.length > 0) {
+      setBulkErrors(errors)
+      return
     }
 
-    setTransitions([...transitions, ...parsedTransitions])
+    setTransitions([...transitions, ...newTransitions])
     setBulkInput('')
+    setBulkErrors([])
   }
 
   return (
-    <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-      <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-primary">
-        Transitions
-      </h3>
-      {/* Existing Transition List */}
-      <div className="space-y-4 mb-6 max-h-40 overflow-y-auto">
-        {transitions.map((transition, index) => (
-          <div key={index} className="flex items-center justify-between">
-            <span className="text-primary">
-              {transition.current_state} {transition.read_symbol}{' '}
-              {transition.write_symbol} {transition.direction}{' '}
-              {transition.new_state} {transition.breakpoint ? '!' : ''}
-            </span>
-            <button
-              onClick={() => removeTransition(index)}
-              className="text-red-500 hover:text-red-700"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Individual Transition Input */}
-      <div className="space-y-2 mb-6">
-        <h4 className="text-lg font-semibold text-primary">
-          Add Single Transition
-        </h4>
-        <input
-          type="text"
-          name="current_state"
-          value={newTransition.current_state}
-          onChange={handleChange}
-          placeholder="Current State"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        />
-        <input
-          type="text"
-          name="read_symbol"
-          value={newTransition.read_symbol}
-          onChange={handleChange}
-          placeholder="Read Symbol"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        />
-        <input
-          type="text"
-          name="write_symbol"
-          value={newTransition.write_symbol}
-          onChange={handleChange}
-          placeholder="Write Symbol"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        />
-        <select
-          name="direction"
-          value={newTransition.direction}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        >
-          <option value="l">Left (L)</option>
-          <option value="r">Right (R)</option>
-          <option value="*">Stay (*)</option>
-        </select>
-        <input
-          type="text"
-          name="new_state"
-          value={newTransition.new_state}
-          onChange={handleChange}
-          placeholder="New State"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        />
-        <div className="flex items-center">
+    <div className="bg-white p-4 rounded-lg shadow">
+      <h3 className="text-xl font-semibold mb-4 border-b pb-2">Transitions</h3>
+      {/* Individual Transition Inputs in One Line */}
+      <div className="flex flex-wrap items-end gap-4 mb-6">
+        <div className="flex flex-col">
+          <label htmlFor="current_state" className="mb-1 font-medium">
+            Current State
+          </label>
           <input
-            type="checkbox"
-            name="breakpoint"
-            checked={newTransition.breakpoint}
+            type="text"
+            id="current_state"
+            name="current_state"
+            placeholder="State"
+            value={transition.current_state}
             onChange={handleChange}
-            className="mr-2"
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <label className="text-primary">Breakpoint</label>
         </div>
-        <button
-          onClick={addTransition}
-          className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Add Transition
-        </button>
+        <div className="flex flex-col">
+          <label htmlFor="read_symbol" className="mb-1 font-medium">
+            Read Symbol
+          </label>
+          <input
+            type="text"
+            id="read_symbol"
+            name="read_symbol"
+            placeholder="Read"
+            value={transition.read_symbol}
+            onChange={handleChange}
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="write_symbol" className="mb-1 font-medium">
+            Write Symbol
+          </label>
+          <input
+            type="text"
+            id="write_symbol"
+            name="write_symbol"
+            placeholder="Write"
+            value={transition.write_symbol}
+            onChange={handleChange}
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="direction" className="mb-1 font-medium">
+            Direction
+          </label>
+          <select
+            id="direction"
+            name="direction"
+            value={transition.direction}
+            onChange={handleChange}
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="l">Left (l)</option>
+            <option value="r">Right (r)</option>
+            <option value="*">Stay (*)</option>
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="new_state" className="mb-1 font-medium">
+            New State
+          </label>
+          <input
+            type="text"
+            id="new_state"
+            name="new_state"
+            placeholder="New State"
+            value={transition.new_state}
+            onChange={handleChange}
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-col items-center mt-5">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              name="breakpoint"
+              checked={transition.breakpoint}
+              onChange={handleChange}
+              className="mr-2"
+            />
+            Breakpoint
+          </label>
+        </div>
+        <div className="flex flex-col mt-5">
+          <button
+            onClick={addTransition}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Add Transition
+          </button>
+        </div>
       </div>
 
       {/* Bulk Transition Input */}
-      <div className="space-y-2">
-        <h4 className="text-lg font-semibold text-primary">
-          Add Bulk Transitions
-        </h4>
+      <div className="mb-6">
+        <h4 className="text-lg font-semibold mb-2">Bulk Add Transitions</h4>
         <textarea
           value={bulkInput}
           onChange={(e) => setBulkInput(e.target.value)}
-          placeholder={`Enter transitions in the following format:\n<current state> <current symbol> <new symbol> <direction> <new state> [!]\nExample:\nstart 1 1 l start\nstart _ _ * halt-accept !\n; This is a comment`}
-          className="w-full h-24 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-        />
+          placeholder={`Enter transitions here, one per line.\nFormat: <current_state> <read_symbol> <write_symbol> <direction> <new_state>\nExample:\nstart 1 0 r carry`}
+          className="w-full h-32 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+        ></textarea>
         <button
-          onClick={handleBulkAdd}
-          className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          onClick={parseBulkTransitions}
+          className="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
         >
           Add Bulk Transitions
         </button>
+        {bulkErrors.length > 0 && (
+          <div className="mt-2 text-red-500">
+            <ul className="list-disc list-inside">
+              {bulkErrors.map((error, idx) => (
+                <li key={idx}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* List of Transitions */}
+      <div>
+        <h4 className="text-lg font-semibold mb-2">Transition List</h4>
+        {transitions.length === 0 ? (
+          <p className="text-gray-500">No transitions added yet.</p>
+        ) : (
+          <ul className="space-y-2 max-h-60 overflow-y-auto">
+            {transitions.map((t, index) => (
+              <li
+                key={index}
+                className="flex justify-between items-center bg-gray-100 p-2 rounded"
+              >
+                <span className="font-medium">
+                  {`${t.current_state} ${t.read_symbol} ${t.write_symbol} ${t.direction} ${t.new_state}`}
+                  {t.breakpoint && (
+                    <span className="text-red-500 font-bold"> !</span>
+                  )}
+                </span>
+                <button
+                  onClick={() => removeTransition(index)}
+                  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

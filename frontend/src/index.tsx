@@ -2,8 +2,8 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css' // Ensure Tailwind directives are included here
 import App from './App'
+import './styles/globals.css'
 
 // eslint-disable-next-line react/no-deprecated
 ReactDOM.render(

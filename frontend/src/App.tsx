@@ -1,25 +1,24 @@
-// frontend/src/App.tsx
-
-import React, { useState, useEffect } from 'react'
-import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSelector.component'
+import React, { useState } from 'react'
+import TransitionInput from './components/TransitionInput/TransitionInput.component'
+import InputString from './components/InputString/InputString.component'
+import Controls from './components/Controls/Controls.component'
 import TapeDisplay from './components/TapeDisplay/TapeDisplay.component'
-import TransitionInputComponent from './components/TransitionInput/TransitionInput.component'
-import InputStringComponent from './components/InputString/InputString.component'
-import ControlsComponent from './components/Controls/Controls.component'
 import StatusDisplay from './components/StatusDisplay/StatusDisplay.component'
+import StartStateSelector from './components/StartStateSelector/StartStateSelector.component'
 import TransitionHistory from './components/TransitionHistory/TransitionHistory.component'
+import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSelector.component'
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle.component'
-import StartStateSelector from './components/StartStateSelector/StartStateSelector.component' // Import StartStateSelector
+import './styles/globals.css'
 import api from './api'
 import {
-  TransitionInput,
+  TransitionInput as TransitionInputType,
   StepOutput,
   TransitionTaken,
   MachineType
 } from './types'
 
 function App() {
-  const [transitions, setTransitions] = useState<TransitionInput[]>([])
+  const [transitions, setTransitions] = useState<TransitionInputType[]>([])
   const [inputString, setInputString] = useState<string>('')
   const [tape, setTape] = useState<string>('')
   const [head, setHead] = useState<number>(0)
@@ -33,11 +32,6 @@ function App() {
   )
   const [machineType, setMachineType] = useState<MachineType>(
     MachineType.STANDARD
-  ) // Add machine type state
-
-  // Derive valid states from transitions
-  const validStates = Array.from(
-    new Set(transitions.flatMap((t) => [t.current_state, t.new_state]))
   )
 
   const handleStart = async () => {
@@ -54,8 +48,7 @@ function App() {
     }
 
     try {
-      const response = await api.post('/initialise', {
-        // Corrected endpoint to '/initialise'
+      await api.post('/initialise', {
         transitions: transitions.map((t) => ({
           current_state: t.current_state,
           read_symbol: t.read_symbol,
@@ -66,10 +59,9 @@ function App() {
         })),
         input_string: inputString || '_',
         start_state: startState,
-        machine_type: machineType // Send machine type to backend
+        machine_type: machineType
       })
-
-      // Initialize UI without performing the first step
+      // Initialise UI without performing the first step
       setTape(
         inputString.includes('*')
           ? inputString.replace('*', '_')
@@ -83,7 +75,7 @@ function App() {
       setTransitionHistory([])
     } catch (error: any) {
       alert(
-        error.response?.data?.detail || 'Error initializing Turing Machine.'
+        error.response?.data?.detail || 'Error initialising Turing Machine.'
       )
       console.error(error)
     }
@@ -175,46 +167,42 @@ function App() {
   return (
     <div className="App font-sans bg-gray-100 dark:bg-gray-800 min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-blue-600 text-white py-4 shadow-md flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-primary">
+      <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
+        <h1 className="text-3xl font-bold text-center flex-1">
           Turing Machine Simulator
         </h1>
-        <div className="flex items-center space-x-4">
-          <MachineTypeSelector
-            selectedType={machineType}
-            setSelectedType={setMachineType}
-          />{' '}
-          {/* Add MachineTypeSelector */}
-          <DarkModeToggle /> {/* Include the DarkModeToggle component */}
-        </div>
+        <MachineTypeSelector
+          selectedType={machineType}
+          setSelectedType={setMachineType}
+        />
+        <DarkModeToggle />
       </header>
 
       {/* Main Content */}
       <main className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Tape and Status */}
         <div className="space-y-6">
-          <TapeDisplay tape={tape} head={head} machineType={machineType} />{' '}
-          {/* Pass machineType */}
+          <TapeDisplay tape={tape} head={head} machineType={machineType} />
           <StatusDisplay currentState={currentState} steps={steps} />
           <TransitionHistory transitions={transitionHistory} />
         </div>
 
         {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
         <div className="space-y-6">
-          <TransitionInputComponent
+          <TransitionInput
             transitions={transitions}
             setTransitions={setTransitions}
           />
           <StartStateSelector
-            validStates={validStates}
-            selectedStartState={startState}
-            setSelectedStartState={setStartState}
+            transitions={transitions}
+            startState={startState}
+            setStartState={setStartState}
           />
-          <InputStringComponent
+          <InputString
             inputString={inputString}
             setInputString={setInputString}
           />
-          <ControlsComponent
+          <Controls
             onStart={handleStart}
             onStep={handleStep}
             onRun={handleRun}

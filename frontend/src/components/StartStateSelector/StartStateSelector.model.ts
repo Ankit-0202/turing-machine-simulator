@@ -1,7 +1,9 @@
 // frontend/src/components/StartStateSelector/StartStateSelector.model.ts
 
+import { TransitionInput } from '../../types'
+
 export interface StartStateSelectorProps {
-  validStates: string[]
-  selectedStartState: string
-  setSelectedStartState: (state: string) => void
+  transitions: TransitionInput[]
+  startState: string
+  setStartState: React.Dispatch<React.SetStateAction<string>>
 }

@@ -2,8 +2,9 @@
 
 import React from 'react'
 import { ControlsProps } from './Controls.model'
+import './Controls.styles.css'
 
-const ControlsComponent: React.FC<ControlsProps> = ({
+const Controls: React.FC<ControlsProps> = ({
   onStart,
   onStep,
   onRun,
@@ -12,39 +13,36 @@ const ControlsComponent: React.FC<ControlsProps> = ({
   isHalted
 }) => {
   return (
-    <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-      <h3 className="text-xl font-semibold mb-4 border-b pb-2">Controls</h3>
-      <div className="space-y-2">
-        <button
-          onClick={onStart}
-          className="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:bg-green-300"
-          disabled={isStarted}
-        >
-          Start Simulation
-        </button>
-        <button
-          onClick={onStep}
-          className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-          disabled={!isStarted || isHalted}
-        >
-          Step
-        </button>
-        <button
-          onClick={onRun}
-          className="w-full bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 disabled:bg-purple-300"
-          disabled={!isStarted || isHalted}
-        >
-          Run
-        </button>
-        <button
-          onClick={onReset}
-          className="w-full bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Reset
-        </button>
-      </div>
+    <div className="controls bg-white dark:bg-gray-700 p-4 rounded-lg shadow flex space-x-2">
+      <button
+        onClick={onStart}
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+        disabled={isStarted}
+      >
+        Start
+      </button>
+      <button
+        onClick={onStep}
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        disabled={!isStarted || isHalted}
+      >
+        Step
+      </button>
+      <button
+        onClick={onRun}
+        className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+        disabled={!isStarted || isHalted}
+      >
+        Run
+      </button>
+      <button
+        onClick={onReset}
+        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+      >
+        Reset
+      </button>
     </div>
   )
 }
 
-export default ControlsComponent
+export default Controls

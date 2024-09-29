@@ -2,30 +2,24 @@
 
 import React from 'react'
 import { InputStringProps } from './InputString.model'
+import './InputString.styles.css'
 
-const InputStringComponent: React.FC<InputStringProps> = ({
+const InputString: React.FC<InputStringProps> = ({
   inputString,
   setInputString
 }) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setInputString(value)
-  }
-
   return (
-    <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
-      <h3 className="text-xl font-semibold mb-4 border-b pb-2 text-primary">
-        Input String
-      </h3>
+    <div className="input-string bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
+      <h3 className="text-xl font-semibold mb-4 border-b pb-2">Input String</h3>
       <input
         type="text"
         value={inputString}
-        onChange={handleChange}
-        placeholder="Enter input string (use '*' to indicate head position)"
-        className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+        onChange={(e) => setInputString(e.target.value)}
+        className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-white"
+        placeholder="Enter input string"
       />
     </div>
   )
 }
 
-export default InputStringComponent
+export default InputString

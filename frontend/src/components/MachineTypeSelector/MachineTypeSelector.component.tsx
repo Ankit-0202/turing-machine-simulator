@@ -1,8 +1,7 @@
-// frontend/src/components/MachineTypeSelector/MachineTypeSelector.component.tsx
-
 import React, { useEffect } from 'react'
-import { MachineTypeSelectorProps } from './MachineTypeSelector.model'
 import { MachineType } from '../../types'
+import './MachineTypeSelector.styles.css'
+import { MachineTypeSelectorProps } from './MachineTypeSelector.model'
 
 const MachineTypeSelector: React.FC<MachineTypeSelectorProps> = ({
   selectedType,
@@ -22,10 +21,8 @@ const MachineTypeSelector: React.FC<MachineTypeSelectorProps> = ({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow ml-4">
-      <h3 className="text-xl font-semibold mb-4 pb-2 text-primary">
-        Machine Type
-      </h3>
+    <div className="machine-type-selector bg-white dark:bg-gray-700 p-4 rounded-lg shadow ml-4">
+      <h3 className="text-xl font-semibold mb-4 pb-2">Machine Type</h3>
       <select
         value={selectedType}
         onChange={handleChange}
@@ -33,7 +30,6 @@ const MachineTypeSelector: React.FC<MachineTypeSelectorProps> = ({
       >
         <option value={MachineType.STANDARD}>Standard</option>
         <option value={MachineType.LEFT_BOUNDED}>Left-Bounded</option>
-        {/* Add more options here as you add more machine types */}
       </select>
     </div>
   )
