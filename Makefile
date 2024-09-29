@@ -108,7 +108,4 @@ clean:
 		echo "Virtual environment does not exist. Skipping."; \
 	fi
 
-	@echo "Cleaning frontend build artifacts..."
-	@cd $(FRONTEND_DIR) && npm run clean || echo "No clean script defined for frontend."
-
 	@echo "Cleaning completed."
