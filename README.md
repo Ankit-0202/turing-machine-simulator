@@ -2,33 +2,14 @@
 
 **Turing Machine Simulator** is a web-based application that allows users to design, configure, and simulate Turing machines. Leveraging a Flask backend and a React TypeScript frontend styled with Tailwind CSS, this simulator provides an intuitive interface for both educational purposes and computational explorations.
 
-## **Executable Download**
-
-For users who prefer not to clone the repository and set up the environment manually, a pre-built executable is available for download. This executable bundles both the backend and frontend, allowing you to run the simulator seamlessly on your local machine.
-
-- **Download Executable:** [Download from GitHub Releases](https://github.com/Ankit-0202/turing-machine-simulator/releases)
-
-- **Running the Executable:**
-  1. **Download:** Navigate to the [Releases](https://github.com/Ankit-0202/turing-machine-simulator/releases) section of this repository.
-  2. **Extract:** Download the latest release zip file and extract its contents.
-  3. **Run:** Execute the binary file (`app.exe` for Windows or `app` for macOS/Linux) to launch the Turing Machine Simulator.
-
-*Note: Ensure you have the necessary permissions to run executables on your system.*
-
----
-
-## **Bumping**
-
-Manual Bumping: Any commit message that includes #major, #minor, #patch, or #none will trigger the respective version bump. If two or more are present, the highest-ranking one will take precedence.
-
 ---
 
 ## Table of Contents
 
 - [Turing Machine Simulator](#turing-machine-simulator)
-  - [**Executable Download**](#executable-download)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
+  - [**Bumping**](#bumping)
   - [Installation](#installation)
     - [Backend Setup](#backend-setup)
     - [Frontend Setup](#frontend-setup)
@@ -49,7 +30,13 @@ Before you begin, ensure you have met the following requirements:
 - **Node.js and npm**: [Download and install Node.js](https://nodejs.org/) (includes npm).
 - **Python+**: [Download and install Python](https://www.python.org/downloads/).
 - **Git**: [Download and install Git](https://git-scm.com/downloads).
-- **Basic Knowledge**: Familiarity with React, TypeScript, Flask, and Tailwind CSS is beneficial.
+- **Basic Knowledge**: Familiarity with React, TypeScript, Flask and Tailwind CSS is beneficial.
+
+---
+
+## **Bumping**
+
+Any commit message that includes #major, #minor, #patch, or #none will trigger the respective version bump. If two or more are present, the highest-ranking one will take precedence.
 
 ---
 
