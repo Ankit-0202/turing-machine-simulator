@@ -4,5 +4,5 @@ import { TransitionInput } from '../../types'
 
 export interface TransitionInputComponentProps {
   transitions: TransitionInput[]
-  setTransitions: React.Dispatch<React.SetStateAction<TransitionInput[]>>
+  setTransitions: (transitions: TransitionInput[]) => void
 }

@@ -1,6 +1,6 @@
 // frontend/src/App.tsx
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSelector.component'
 import TapeDisplay from './components/TapeDisplay/TapeDisplay.component'
 import TransitionInputComponent from './components/TransitionInput/TransitionInput.component'
@@ -9,6 +9,7 @@ import ControlsComponent from './components/Controls/Controls.component'
 import StatusDisplay from './components/StatusDisplay/StatusDisplay.component'
 import TransitionHistory from './components/TransitionHistory/TransitionHistory.component'
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle.component'
+import StartStateSelector from './components/StartStateSelector/StartStateSelector.component' // Import StartStateSelector
 import api from './api'
 import {
   TransitionInput,
@@ -34,6 +35,11 @@ function App() {
     MachineType.STANDARD
   ) // Add machine type state
 
+  // Derive valid states from transitions
+  const validStates = Array.from(
+    new Set(transitions.flatMap((t) => [t.current_state, t.new_state]))
+  )
+
   const handleStart = async () => {
     if (transitions.length === 0) {
       alert(
@@ -48,7 +54,8 @@ function App() {
     }
 
     try {
-      await api.post('/initialize', {
+      const response = await api.post('/initialise', {
+        // Corrected endpoint to '/initialise'
         transitions: transitions.map((t) => ({
           current_state: t.current_state,
           read_symbol: t.read_symbol,
@@ -61,6 +68,7 @@ function App() {
         start_state: startState,
         machine_type: machineType // Send machine type to backend
       })
+
       // Initialize UI without performing the first step
       setTape(
         inputString.includes('*')
@@ -167,16 +175,18 @@ function App() {
   return (
     <div className="App font-sans bg-gray-100 dark:bg-gray-800 min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
-        <h1 className="text-3xl font-bold text-center flex-1">
+      <header className="bg-blue-600 text-white py-4 shadow-md flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-primary">
           Turing Machine Simulator
         </h1>
-        <MachineTypeSelector
-          selectedType={machineType}
-          setSelectedType={setMachineType}
-        />{' '}
-        {/* Add MachineTypeSelector */}
-        <DarkModeToggle /> {/* Include the DarkModeToggle component */}
+        <div className="flex items-center space-x-4">
+          <MachineTypeSelector
+            selectedType={machineType}
+            setSelectedType={setMachineType}
+          />{' '}
+          {/* Add MachineTypeSelector */}
+          <DarkModeToggle /> {/* Include the DarkModeToggle component */}
+        </div>
       </header>
 
       {/* Main Content */}
@@ -194,6 +204,11 @@ function App() {
           <TransitionInputComponent
             transitions={transitions}
             setTransitions={setTransitions}
+          />
+          <StartStateSelector
+            validStates={validStates}
+            selectedStartState={startState}
+            setSelectedStartState={setStartState}
           />
           <InputStringComponent
             inputString={inputString}
