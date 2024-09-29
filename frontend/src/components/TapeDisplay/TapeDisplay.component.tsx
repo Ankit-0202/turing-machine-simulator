@@ -1,5 +1,8 @@
+// frontend/src/components/TapeDisplay/TapeDisplay.component.tsx
+
 import React from 'react'
-import { TapeDisplayProps, MachineType } from '../types'
+import { TapeDisplayProps } from './TapeDisplay.model'
+import { MachineType } from '../../types'
 
 const TapeDisplay: React.FC<TapeDisplayProps> = ({
   tape,

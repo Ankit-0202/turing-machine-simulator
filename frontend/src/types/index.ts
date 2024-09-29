@@ -1,10 +1,12 @@
+// frontend/src/types/index.ts
+
 export interface TransitionInput {
   current_state: string
   read_symbol: string
   write_symbol: string
   direction: 'l' | 'r' | '*'
   new_state: string
-  breakpoint?: boolean
+  breakpoint?: boolean // Optional flag for breakpoints
 }
 
 export interface StepOutput {
@@ -13,8 +15,8 @@ export interface StepOutput {
   tape: string
   head: number
   steps: number
-  transition_taken?: TransitionTaken
-  transitions_traversed?: TransitionTaken[]
+  transition_taken?: TransitionTaken // Present in step response
+  transitions_traversed?: TransitionTaken[] // Present in run response
 }
 
 export interface TransitionTaken {

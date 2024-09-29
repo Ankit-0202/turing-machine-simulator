@@ -1,13 +1,14 @@
+// frontend/src/App.tsx
+
 import React, { useState } from 'react'
-import TransitionInputComponent from './components/TransitionInput'
-import InputStringComponent from './components/InputString'
-import ControlsComponent from './components/Controls'
-import TapeDisplay from './components/TapeDisplay'
-import StatusDisplay from './components/StatusDisplay'
-import StartStateSelector from './components/StartStateSelector'
-import TransitionHistory from './components/TransitionHistory'
-import MachineTypeSelector from './components/MachineTypeSelector'
-import DarkModeToggle from './components/DarkModeToggle'
+import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSelector.component'
+import TapeDisplay from './components/TapeDisplay/TapeDisplay.component'
+import TransitionInputComponent from './components/TransitionInput/TransitionInput.component'
+import InputStringComponent from './components/InputString/InputString.component'
+import ControlsComponent from './components/Controls/Controls.component'
+import StatusDisplay from './components/StatusDisplay/StatusDisplay.component'
+import TransitionHistory from './components/TransitionHistory/TransitionHistory.component'
+import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle.component'
 import api from './api'
 import {
   TransitionInput,
@@ -31,7 +32,7 @@ function App() {
   )
   const [machineType, setMachineType] = useState<MachineType>(
     MachineType.STANDARD
-  )
+  ) // Add machine type state
 
   const handleStart = async () => {
     if (transitions.length === 0) {
@@ -47,7 +48,7 @@ function App() {
     }
 
     try {
-      await api.post('/initialise', {
+      await api.post('/initialize', {
         transitions: transitions.map((t) => ({
           current_state: t.current_state,
           read_symbol: t.read_symbol,
@@ -58,8 +59,9 @@ function App() {
         })),
         input_string: inputString || '_',
         start_state: startState,
-        machine_type: machineType
+        machine_type: machineType // Send machine type to backend
       })
+      // Initialize UI without performing the first step
       setTape(
         inputString.includes('*')
           ? inputString.replace('*', '_')
@@ -73,7 +75,7 @@ function App() {
       setTransitionHistory([])
     } catch (error: any) {
       alert(
-        error.response?.data?.detail || 'Error initialising Turing Machine.'
+        error.response?.data?.detail || 'Error initializing Turing Machine.'
       )
       console.error(error)
     }
@@ -156,7 +158,8 @@ function App() {
       setIsStarted(false)
       setIsHalted(false)
       setTransitionHistory([])
-    } catch (error: unknown) {
+    } catch (error: any) {
+      alert(error.response?.data?.detail || 'Error resetting Turing Machine.')
       console.error(error)
     }
   }
@@ -173,7 +176,7 @@ function App() {
           setSelectedType={setMachineType}
         />{' '}
         {/* Add MachineTypeSelector */}
-        <DarkModeToggle />
+        <DarkModeToggle /> {/* Include the DarkModeToggle component */}
       </header>
 
       {/* Main Content */}
@@ -191,11 +194,6 @@ function App() {
           <TransitionInputComponent
             transitions={transitions}
             setTransitions={setTransitions}
-          />
-          <StartStateSelector
-            transitions={transitions}
-            startState={startState}
-            setStartState={setStartState}
           />
           <InputStringComponent
             inputString={inputString}

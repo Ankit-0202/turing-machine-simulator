@@ -1,14 +1,10 @@
-// frontend/src/components/MachineTypeSelector.tsx
+// frontend/src/components/MachineTypeSelector/MachineTypeSelector.component.tsx
 
 import React, { useEffect } from 'react'
-import { MachineType } from '../types'
+import { MachineTypeSelectorProps } from './MachineTypeSelector.model'
+import { MachineType } from '../../types'
 
-interface Props {
-  selectedType: MachineType
-  setSelectedType: React.Dispatch<React.SetStateAction<MachineType>>
-}
-
-const MachineTypeSelector: React.FC<Props> = ({
+const MachineTypeSelector: React.FC<MachineTypeSelectorProps> = ({
   selectedType,
   setSelectedType
 }) => {
@@ -27,7 +23,9 @@ const MachineTypeSelector: React.FC<Props> = ({
 
   return (
     <div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow ml-4">
-      <h3 className="text-xl font-semibold mb-4 pb-2">Machine Type</h3>
+      <h3 className="text-xl font-semibold mb-4 pb-2 text-primary">
+        Machine Type
+      </h3>
       <select
         value={selectedType}
         onChange={handleChange}
