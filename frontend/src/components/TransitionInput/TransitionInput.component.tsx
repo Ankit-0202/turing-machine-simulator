@@ -19,6 +19,7 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
 
   const [bulkInput, setBulkInput] = useState<string>('')
 
+  // Corrected handleChange function with type guard
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -69,11 +70,21 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
   }
 
   const handleBulkAdd = () => {
-    // Define the expected format:
-    // Each transition on a new line, fields separated by commas
-    // Example:
-    // start,1,1,l,start
-    // start,_,_,*,halt-accept
+    /**
+     * Define the expected format:
+     * Each line should contain one tuple of the form:
+     * '<current state> <current symbol> <new symbol> <direction> <new state> [!]'
+     *
+     * Example:
+     * start 1 1 l start
+     * start _ _ * halt-accept !
+     *
+     * Notes:
+     * - '*' can be used as a wildcard in <current state> or <current symbol>
+     * - '*' in <new symbol> or <new state> means 'no change'
+     * - '!' at the end sets a breakpoint
+     * - Anything after ';' is a comment and is ignored
+     */
 
     const lines = bulkInput
       .split('\n')
@@ -82,7 +93,19 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
     const parsedTransitions: TransitionInput[] = []
 
     for (let i = 0; i < lines.length; i++) {
-      const parts = lines[i].split(',').map((part) => part.trim())
+      let line = lines[i]
+
+      // Remove comments
+      const commentIndex = line.indexOf(';')
+      if (commentIndex !== -1) {
+        line = line.substring(0, commentIndex).trim()
+      }
+
+      if (line.length === 0) {
+        continue // Entire line was a comment
+      }
+
+      const parts = line.split(/\s+/) // Split by whitespace
       if (parts.length < 5) {
         alert(`Invalid format in line ${i + 1}: "${lines[i]}"`)
         return
@@ -94,17 +117,56 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
         write_symbol,
         direction,
         new_state,
-        breakpointStr
+        ...rest
       ] = parts
 
+      // Validate direction
       if (!['l', 'r', '*'].includes(direction)) {
         alert(`Invalid direction "${direction}" in line ${i + 1}`)
         return
       }
 
-      const breakpoint =
-        (breakpointStr && breakpointStr.toLowerCase() === 'breakpoint') ||
-        undefined
+      // Handle breakpoint
+      let breakpoint = false
+      if (rest.includes('!')) {
+        breakpoint = true
+      }
+
+      // Validate symbols (cannot use ';', '*' except in specific contexts, '_' as blank)
+      const invalidSymbols = new Set([';', ' ', '\t'])
+      if (read_symbol !== '*' && invalidSymbols.has(read_symbol)) {
+        alert(`Invalid read_symbol "${read_symbol}" in line ${i + 1}`)
+        return
+      }
+
+      if (write_symbol !== '*' && invalidSymbols.has(write_symbol)) {
+        alert(`Invalid write_symbol "${write_symbol}" in line ${i + 1}`)
+        return
+      }
+
+      // Validate state names (cannot contain ';' or whitespace)
+      const invalidStateChars = new Set([';', ' ', '\t'])
+      for (const char of current_state) {
+        if (invalidStateChars.has(char)) {
+          alert(
+            `Invalid character "${char}" in current_state "${current_state}" in line ${
+              i + 1
+            }`
+          )
+          return
+        }
+      }
+
+      for (const char of new_state) {
+        if (invalidStateChars.has(char)) {
+          alert(
+            `Invalid character "${char}" in new_state "${new_state}" in line ${
+              i + 1
+            }`
+          )
+          return
+        }
+      }
 
       parsedTransitions.push({
         current_state,
@@ -131,8 +193,14 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
           <div key={index} className="flex items-center justify-between">
             <span className="text-primary">
               ({transition.current_state}, {transition.read_symbol}) → (
-              {transition.write_symbol}, {transition.direction},{' '}
-              {transition.new_state}){transition.breakpoint && ' [Breakpoint]'}
+              {transition.write_symbol !== '*'
+                ? transition.write_symbol
+                : transition.read_symbol}
+              , {transition.direction},{' '}
+              {transition.new_state !== '*'
+                ? transition.new_state
+                : transition.current_state}
+              ){transition.breakpoint && ' [Breakpoint]'}
             </span>
             <button
               onClick={() => removeTransition(index)}
@@ -217,7 +285,7 @@ const TransitionInputComponent: React.FC<TransitionInputComponentProps> = ({
         <textarea
           value={bulkInput}
           onChange={(e) => setBulkInput(e.target.value)}
-          placeholder={`Enter transitions in the following format:\ncurrent_state,read_symbol,write_symbol,direction,new_state,[breakpoint]\nExample:\nstart,1,1,l,start\nstart,_,_,*,halt-accept`}
+          placeholder={`Enter transitions in the following format:\n<current state> <current symbol> <new symbol> <direction> <new state> [!]\nExample:\nstart 1 1 l start\nstart _ _ * halt-accept !`}
           className="w-full h-24 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
         />
         <button
