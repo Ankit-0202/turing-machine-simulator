@@ -53,34 +53,3 @@ stop:
 	@pkill -f "python app.py"
 	@pkill -f "npm start"
 	@echo "All processes stopped."
-
-# Build the executable for distribution
-build-executable: install-backend install-frontend
-	@echo "Building frontend..."
-	@cd $(FRONTEND_DIR) && npm run build
-	@echo "Copying frontend build to backend's static directory..."
-	@rm -rf $(BACKEND_DIR)/static && cp -r $(FRONTEND_DIR)/build $(BACKEND_DIR)/static
-	@echo "Packaging backend with frontend into an executable..."
-	@cd $(BACKEND_DIR) && source venv/bin/activate && pyinstaller --onefile \
-	--hidden-import=_socket \
-	--hidden-import=_posixsubprocess \
-	--hidden-import=array \
-	--hidden-import=pyexpat \
-	app.py
-	@echo "Executable built successfully. Check the 'dist' folder inside the backend directory."
-
-# Run the executable
-run-executable:
-	./backend/dist/app
-
-# Clean the executable build files
-clean-executable:
-	@echo "Cleaning up executable build files..."
-	@rm -rf $(BACKEND_DIR)/dist
-	@rm -rf $(BACKEND_DIR)/build
-	@rm -rf $(BACKEND_DIR)/__pycache__
-	@rm -rf $(BACKEND_DIR)/*.spec
-	@echo "Cleaned up successfully."
-
-# Clean the executable build files
-full-build: clean-executable build-executable run-executable
