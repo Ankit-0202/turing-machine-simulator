@@ -1,49 +1,131 @@
-name: Makefile CI
+name: Turing Machine Simulator CI
 
+# Trigger the workflow on push and pull request events to specified branches
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      - develop
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
+    # Define environment variables (optional)
+    env:
+      BACKEND_DIR: backend
+      FRONTEND_DIR: frontend
+      VENV_DIR: backend/venv
+
     steps:
-    - uses: actions/checkout@v4
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python environment
-      run: sudo apt-get install python3-venv
+      # Step 2: Set up Python environment
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install Backend Dependencies
-      run: |
-        cd backend
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install -r requirements.txt
+      # Step 3: Set up Node.js environment
+      - name: Set up Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
 
-    - name: Install Frontend Dependencies
-      run: |
-        cd frontend
-        npm install
+      # Step 4: Cache Python dependencies
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            backend/venv
+            ~/.cache/pip
+          key: ${{ runner.os }}-python-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-python-
 
-    - name: Run Backend & Frontend
-      run: |
-        cd backend
-        source venv/bin/activate
-        python app.py &
-        cd ../frontend
-        npm start &
-        wait
+      # Step 5: Install Backend Dependencies
+      - name: Install Backend Dependencies
+        run: |
+          make install-backend
+        shell: bash
 
-    - name: Build Executable
-      run: |
-        cd backend
-        source venv/bin/activate
-        pyinstaller --onefile app.py
+      # Step 6: Cache Node.js dependencies (handled by setup-node@v3 with cache: 'npm')
 
-    - name: Clean Executable Build Files
-      run: |
-        cd backend
-        rm -rf dist build __pycache__ *.spec
+      # Step 7: Install Frontend Dependencies
+      - name: Install Frontend Dependencies
+        run: |
+          make install-frontend
+        shell: bash
+
+      # Step 8: Run Backend Tests (Optional)
+      - name: Run Backend Tests
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        run: |
+          cd backend
+          source venv/bin/activate
+          # Replace the following line with your actual test command, e.g., pytest
+          pytest
+        shell: bash
+
+      # Step 9: Run Frontend Tests (Optional)
+      - name: Run Frontend Tests
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        run: |
+          cd frontend
+          npm test -- --ci --reporters=default
+        shell: bash
+
+      # Step 10: Build the Project (Optional)
+      - name: Build Backend (Optional)
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        run: |
+          cd backend
+          source venv/bin/activate
+          # Replace the following line with your actual build command, if any
+          python setup.py build
+        shell: bash
+
+      - name: Build Frontend (Optional)
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        run: |
+          cd frontend
+          npm run build
+        shell: bash
+
+      # Step 11: Upload Build Artifacts (Optional)
+      - name: Upload Backend Build Artifacts
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-build
+          path: backend/build  # Adjust the path based on your build output
+
+      - name: Upload Frontend Build Artifacts
+        if: success() && (github.event_name == 'push' || github.event_name == 'pull_request')
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/build  # Adjust the path based on your build output
+
+      # Step 12: Code Quality Checks (Optional)
+      - name: Lint Backend Code
+        run: |
+          cd backend
+          source venv/bin/activate
+          # Replace with your linter command, e.g., flake8
+          flake8 .
+        shell: bash
+
+      - name: Lint Frontend Code
+        run: |
+          cd frontend
+          npm run lint
+        shell: bash
