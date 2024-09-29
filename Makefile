@@ -26,7 +26,7 @@ SHELL := /bin/bash
 #        Phony Targets
 # ================================
 
-.PHONY: all install install-backend install-frontend run run-backend run-frontend stop clean
+.PHONY: all full install install-backend install-frontend run run-backend run-frontend stop clean
 
 # ================================
 #          Default Target
@@ -34,6 +34,9 @@ SHELL := /bin/bash
 
 # Default target to run both backend and frontend
 all: run
+
+# Targert to install and run
+full: install run
 
 # ================================
 #        Installation Targets
