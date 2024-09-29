@@ -1,55 +1,114 @@
 # Makefile for Turing Machine Simulator
 
-# Directories
-BACKEND_DIR=backend
-FRONTEND_DIR=frontend
+# ================================
+#        Directory Setup
+# ================================
 
-# Virtual Environment
-VENV_DIR=$(BACKEND_DIR)/venv
+BACKEND_DIR := backend
+FRONTEND_DIR := frontend
+VENV_DIR := $(BACKEND_DIR)/venv
 
-# Shell
+# ================================
+#           Commands
+# ================================
+
+# Python and Pip within the virtual environment
+PYTHON := $(VENV_DIR)/bin/python
+PIP := $(VENV_DIR)/bin/pip
+
+# ================================
+#            Shell
+# ================================
+
 SHELL := /bin/bash
 
-.PHONY: all run backend frontend install install-backend install-frontend stop build-executable run-executable clean-executable full-build
+# ================================
+#        Phony Targets
+# ================================
 
-# Default target
+.PHONY: all install install-backend install-frontend run run-backend run-frontend stop clean
+
+# ================================
+#          Default Target
+# ================================
+
+# Default target to run both backend and frontend
 all: run
 
-# Install all dependencies
+# ================================
+#        Installation Targets
+# ================================
+
+# Install all dependencies (backend and frontend)
 install: install-backend install-frontend
 
 # Install backend dependencies
 install-backend:
 	@echo "Setting up backend environment..."
-	@cd $(BACKEND_DIR) && python3 -m venv venv
-	@echo "Activating virtual environment and installing backend dependencies..."
-	@source $(VENV_DIR)/bin/activate && pip install -r $(BACKEND_DIR)/requirements.txt
+	@if [ ! -d "$(VENV_DIR)" ]; then \
+		python3 -m venv $(VENV_DIR); \
+		echo "Virtual environment created at $(VENV_DIR)"; \
+		echo "Installing backend dependencies..."; \
+		$(PIP) install --upgrade pip; \
+		$(PIP) install -r $(BACKEND_DIR)/requirements.txt; \
+		echo "Backend dependencies installed."; \
+	else \
+		echo "Backend virtual environment already exists. Skipping creation."; \
+	fi
 
 # Install frontend dependencies
 install-frontend:
 	@echo "Installing frontend dependencies..."
 	@cd $(FRONTEND_DIR) && npm install
+	@echo "Frontend dependencies installed."
+
+# ================================
+#          Run Targets
+# ================================
 
 # Run both backend and frontend concurrently
-run:
-	@echo "Starting backend and frontend..."
-	@cd $(BACKEND_DIR) && source venv/bin/activate && python app.py & \
-	cd $(FRONTEND_DIR) && npm start & \
-	wait
+run: run-backend run-frontend
+	@wait
+	@echo "Both backend and frontend have exited."
 
 # Run backend only
-backend:
+run-backend:
 	@echo "Starting backend..."
-	@cd $(BACKEND_DIR) && source venv/bin/activate && python app.py
+	@cd $(BACKEND_DIR) && $(PYTHON) app.py &
+	@BACKEND_PID=$$! && echo "Backend started with PID $$BACKEND_PID"
 
 # Run frontend only
-frontend:
+run-frontend:
 	@echo "Starting frontend..."
-	@cd $(FRONTEND_DIR) && npm start
+	@cd $(FRONTEND_DIR) && npm start &
+	@FRONTEND_PID=$$! && echo "Frontend started with PID $$FRONTEND_PID"
 
-# Stop all background processes
+# ================================
+#           Stop Target
+# ================================
+
+# Stop all background processes (backend and frontend)
 stop:
 	@echo "Stopping all background processes..."
-	@pkill -f "python app.py"
-	@pkill -f "npm start"
+	@pkill -f "python app.py" && echo "Backend stopped." || echo "Backend was not running."
+	@pkill -f "npm start" && echo "Frontend stopped." || echo "Frontend was not running."
 	@echo "All processes stopped."
+
+# ================================
+#          Clean Target
+# ================================
+
+# Clean build artifacts and dependencies
+clean:
+	@echo "Cleaning backend environment..."
+	@if [ -d "$(VENV_DIR)" ]; then \
+		rm -rf $(VENV_DIR); \
+		echo "Removed virtual environment."; \
+	else \
+		echo "Virtual environment does not exist. Skipping."; \
+	fi
+
+	@echo "Cleaning frontend build artifacts..."
+	@cd $(FRONTEND_DIR) && npm run clean || echo "No clean script defined for frontend."
+
+	@echo "Cleaning completed."
