@@ -82,7 +82,7 @@ Any commit message that includes #major, #minor, #patch, or #none will trigger t
     python app.py
     ```
 
-    The backend server will start at [http://127.0.0.1:5001](http://127.0.0.1:5001).
+    The backend server will start at [http://127.0.0.1:5000](http://127.0.0.1:5000).
 
 ### Frontend Setup
 

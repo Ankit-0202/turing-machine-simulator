@@ -1,20 +1,18 @@
 import os
 import sys
 import logging
-import webbrowser
-import threading
 from flask import Flask, request, jsonify, send_from_directory
 from turing_machine import TuringMachine
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS if frontend is on a different domain/port
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # Configure Logging
 logging.basicConfig(
-    filename='app.log',
+    filename="app.log",
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s:%(message)s'
+    format="%(asctime)s %(levelname)s:%(message)s",
 )
 
 # Global instance of TuringMachine
@@ -28,9 +26,7 @@ def initialise():
     transitions = data.get("transitions", [])
     input_string = data.get("input_string", "_")
     start_state = data.get("start_state", "start")
-    machine_type = data.get(
-        "machine_type", "standard"
-    ).lower()  # Normalise to lowercase
+    machine_type = data.get("machine_type", "standard").lower()
 
     try:
         tm = TuringMachine(
@@ -92,16 +88,17 @@ def reset():
         return jsonify({"message": "Turing Machine reset successfully."}), 200
     except ValueError as ve:
         return jsonify({"detail": str(ve)}), 400
-    
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
 def serve_frontend(path):
     if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
         logging.info(f"Serving static file: {path}")
         return send_from_directory(app.static_folder, path)
     else:
         logging.info("Serving index.html")
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(app.static_folder, "index.html")
 
 
 if __name__ == "__main__":
@@ -113,8 +110,8 @@ if __name__ == "__main__":
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 
-    # Set default port to 5001 to avoid conflicts and disable debug mode
-    port = int(os.environ.get("PORT", 5001))
+    # Set default port to 5000 to avoid conflicts and disable debug mode
+    port = int(os.environ.get("PORT", 5000))
     debug_mode = False  # Disable debug mode for production
 
     app.run(debug=debug_mode, port=port)
