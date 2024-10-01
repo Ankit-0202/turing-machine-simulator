@@ -6,7 +6,6 @@
 
 ## Table of Contents
 
-- [Turing Machine Simulator](#turing-machine-simulator)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
