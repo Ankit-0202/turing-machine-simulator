@@ -1,13 +1,15 @@
+// frontend/src/App.tsx
+
 import React, { useState } from 'react'
 import TransitionInput from './components/TransitionInput/TransitionInput.component'
 import InputString from './components/InputString/InputString.component'
 import Controls from './components/Controls/Controls.component'
 import TapeDisplay from './components/TapeDisplay/TapeDisplay.component'
 import StatusDisplay from './components/StatusDisplay/StatusDisplay.component'
-import StartStateSelector from './components/StartStateSelector/StartStateSelector.component'
 import TransitionHistory from './components/TransitionHistory/TransitionHistory.component'
 import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSelector.component'
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle.component'
+import Settings from './components/Settings/Settings.component' // Updated Import
 import './styles/globals.css'
 import api from './api'
 import {
@@ -33,6 +35,7 @@ function App() {
   const [machineType, setMachineType] = useState<MachineType>(
     MachineType.STANDARD
   )
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false) // State for Settings Sidebar
 
   const handleStart = async () => {
     if (transitions.length === 0) {
@@ -42,9 +45,11 @@ function App() {
       return
     }
 
+    // Set default start state if not set
+    let effectiveStartState = startState
     if (startState === '') {
-      alert('Please select a start state before starting the simulation.')
-      return
+      effectiveStartState = transitions[0].current_state
+      setStartState(effectiveStartState)
     }
 
     try {
@@ -58,7 +63,7 @@ function App() {
           breakpoint: t.breakpoint || false
         })),
         input_string: inputString || '_',
-        start_state: startState,
+        start_state: effectiveStartState,
         machine_type: machineType
       })
       // Initialise UI without performing the first step
@@ -68,7 +73,7 @@ function App() {
           : inputString || '_'
       )
       setHead(inputString.includes('*') ? inputString.indexOf('*') : 0)
-      setCurrentState(startState)
+      setCurrentState(effectiveStartState)
       setSteps(0)
       setIsStarted(true)
       setIsHalted(false)
@@ -164,57 +169,77 @@ function App() {
     }
   }
 
+  const toggleSettings = () => {
+    setIsSettingsOpen(!isSettingsOpen)
+  }
+
   return (
-    <div className="App font-sans bg-gray-100 dark:bg-gray-800 min-h-screen flex flex-col">
+    <div className="App font-sans bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-blue-600 text-white py-4 shadow-md flex items-center">
-        <h1 className="text-3xl font-bold text-center flex-1">
-          Turing Machine Simulator
-        </h1>
-        <MachineTypeSelector
-          selectedType={machineType}
-          setSelectedType={setMachineType}
-        />
-        <DarkModeToggle />
+      <header className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 shadow-md flex items-center justify-between px-6">
+        <h1 className="text-3xl font-bold">Turing Machine Simulator</h1>
+        <div className="flex items-center space-x-4">
+          <MachineTypeSelector
+            selectedType={machineType}
+            setSelectedType={setMachineType}
+          />
+          <DarkModeToggle />
+          <button
+            onClick={toggleSettings}
+            className="bg-indigo-500 hover:bg-indigo-600 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors"
+            aria-label="Open Settings"
+          >
+            ⚙️
+          </button>
+        </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Tape and Status */}
-        <div className="space-y-6">
-          <TapeDisplay tape={tape} head={head} machineType={machineType} />
-          <StatusDisplay currentState={currentState} steps={steps} />
-          <TransitionHistory transitions={transitionHistory} />
-        </div>
+      {/* Settings Sidebar */}
+      <Settings
+        isOpen={isSettingsOpen}
+        toggleSettings={toggleSettings}
+        startState={startState}
+        setStartState={setStartState}
+        transitions={transitions}
+      />
 
-        {/* Right Column: Transition Input, Start State Selector, Input String, Controls */}
-        <div className="space-y-6">
-          <TransitionInput
-            transitions={transitions}
-            setTransitions={setTransitions}
-          />
-          <StartStateSelector
-            transitions={transitions}
-            startState={startState}
-            setStartState={setStartState}
-          />
+      {/* Main Content */}
+      <main className="flex-1 p-6 flex flex-col items-center">
+        {/* Tape Display */}
+        <TapeDisplay tape={tape} head={head} machineType={machineType} />
+
+        {/* Status Display with Controls */}
+        <StatusDisplay
+          currentState={currentState}
+          steps={steps}
+          isStarted={isStarted}
+          isHalted={isHalted}
+          onStart={handleStart}
+          onStep={handleStep}
+          onRun={handleRun}
+          onReset={handleReset}
+        />
+
+        {/* Conditional Transition History */}
+        {transitionHistory.length > 0 && (
+          <TransitionHistory transitions={transitionHistory} />
+        )}
+
+        {/* Input String and Transition Inputs */}
+        <div className="w-full max-w-4xl mt-6">
           <InputString
             inputString={inputString}
             setInputString={setInputString}
           />
-          <Controls
-            onStart={handleStart}
-            onStep={handleStep}
-            onRun={handleRun}
-            onReset={handleReset}
-            isStarted={isStarted}
-            isHalted={isHalted}
+          <TransitionInput
+            transitions={transitions}
+            setTransitions={setTransitions}
           />
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-blue-600 text-white py-4 text-center">
+      <footer className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 text-center">
         <p>
           &copy; {new Date().getFullYear()} Turing Machine Simulator. All rights
           reserved.

@@ -1,6 +1,6 @@
 // frontend/src/components/StartStateSelector/StartStateSelector.model.ts
 
-import { TransitionInput } from '../../types'
+import { TransitionInput } from 'types'
 
 export interface StartStateSelectorProps {
   transitions: TransitionInput[]

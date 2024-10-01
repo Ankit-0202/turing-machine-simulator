@@ -1,19 +1,13 @@
 // frontend/tailwind.config.js
 
 module.exports = {
-  darkMode: 'class', // Enables dark mode via a CSS class
-  content: [
-    "./src/**/*.{js,jsx,ts,tsx}",
-  ],
+  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  darkMode: 'class', // Enable class-based dark mode
   theme: {
-    extend: {
-      colors: {
-        primary: {
-          light: '#000000', // Black in light mode
-          dark: '#FFFFFF',  // White in dark mode
-        },
-      },
-    },
+    extend: {},
+  },
+  variants: {
+    extend: {},
   },
   plugins: [],
 }

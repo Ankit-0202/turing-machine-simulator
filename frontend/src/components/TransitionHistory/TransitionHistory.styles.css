@@ -10,3 +10,7 @@
 .transition-history table td {
     @apply text-center;
 }
+
+.transition-history table tbody tr:nth-child(even) {
+    @apply bg-gray-50 dark:bg-gray-800;
+}

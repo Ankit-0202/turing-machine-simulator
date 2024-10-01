@@ -31,7 +31,7 @@ const DarkModeToggle: React.FC<DarkModeToggleProps> = () => {
   return (
     <button
       onClick={toggleDarkMode}
-      className="dark-mode-toggle bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 p-2 rounded"
+      className="dark-mode-toggle bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
       aria-label="Toggle Dark Mode"
     >
       {darkMode ? '🌙' : '☀️'}

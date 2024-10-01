@@ -1,0 +1,9 @@
+/* frontend/src/components/TapeDisplay/TapeDisplay.styles.css */
+
+.tape-symbol.relative .absolute {
+    @apply transition-transform duration-300;
+}
+
+.tape-display .tape-symbol:hover {
+    @apply bg-yellow-200 dark:bg-yellow-500;
+}

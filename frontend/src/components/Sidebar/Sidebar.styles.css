@@ -1,0 +1,18 @@
+/* frontend/src/components/Sidebar/Sidebar.styles.css */
+
+.sidebar {
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 111, 0.5);
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}

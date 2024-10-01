@@ -1,0 +1,5 @@
+/* frontend/src/components/StatusDisplay/StatusDisplay.styles.css */
+
+.status-display p:first-child {
+    @apply font-bold;
+}

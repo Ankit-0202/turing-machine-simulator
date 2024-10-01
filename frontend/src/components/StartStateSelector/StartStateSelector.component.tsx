@@ -9,8 +9,7 @@ const StartStateSelector: React.FC<StartStateSelectorProps> = ({
   startState,
   setStartState
 }) => {
-  // Refactored to use Array.from for better compatibility
-  const states = Array.from(new Set(transitions.map((t) => t.current_state)))
+  const states = [...new Set(transitions.map((t) => t.current_state))]
 
   return (
     <div className="start-state-selector bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
