@@ -1,0 +1,12 @@
+/* frontend/src/components/TransitionHistory/TransitionHistory.styles.css */
+
+/* Hover effect for table rows */
+.transition-history table tr:hover {
+    @apply bg-gray-100 dark:bg-gray-600;
+}
+
+/* Center align text in specific columns */
+.transition-history table th,
+.transition-history table td {
+    @apply text-center;
+}
