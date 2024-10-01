@@ -1,6 +1,6 @@
 # Turing Machine Simulator
 
-**Turing Machine Simulator** is a web-based application that allows users to design, configure, and simulate Turing machines. Leveraging a Flask backend and a React TypeScript frontend styled with Tailwind CSS, this simulator provides an intuitive interface for both educational purposes and computational explorations.
+**Turing Machine Simulator** is a web-based application that allows users to design, configure and simulate Turing machines using Morphett notation.
 
 ---
 
