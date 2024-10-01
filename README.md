@@ -9,7 +9,6 @@
 - [Turing Machine Simulator](#turing-machine-simulator)
   - [Table of Contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
-  - [**Bumping**](#bumping)
   - [Installation](#installation)
     - [Backend Setup](#backend-setup)
     - [Frontend Setup](#frontend-setup)
@@ -31,12 +30,6 @@ Before you begin, ensure you have met the following requirements:
 - **Python+**: [Download and install Python](https://www.python.org/downloads/).
 - **Git**: [Download and install Git](https://git-scm.com/downloads).
 - **Basic Knowledge**: Familiarity with React, TypeScript, Flask and Tailwind CSS is beneficial.
-
----
-
-## **Bumping**
-
-Any commit message that includes #major, #minor, #patch, or #none will trigger the respective version bump. If two or more are present, the highest-ranking one will take precedence.
 
 ---
 
