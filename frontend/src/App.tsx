@@ -1,9 +1,8 @@
 // frontend/src/App.tsx
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import TransitionInput from './components/TransitionInput/TransitionInput.component'
 import InputString from './components/InputString/InputString.component'
-import Controls from './components/Controls/Controls.component'
 import TapeDisplay from './components/TapeDisplay/TapeDisplay.component'
 import StatusDisplay from './components/StatusDisplay/StatusDisplay.component'
 import TransitionHistory from './components/TransitionHistory/TransitionHistory.component'
@@ -11,13 +10,16 @@ import MachineTypeSelector from './components/MachineTypeSelector/MachineTypeSel
 import DarkModeToggle from './components/DarkModeToggle/DarkModeToggle.component'
 import Settings from './components/Settings/Settings.component' // Updated Import
 import './styles/globals.css'
-import api from './api'
 import {
   TransitionInput as TransitionInputType,
-  StepOutput,
   TransitionTaken,
   MachineType
 } from './types'
+import {
+  TuringMachine,
+  MachineType as TMType,
+  Direction
+} from './utils/turingMachine'
 
 function App() {
   const [transitions, setTransitions] = useState<TransitionInputType[]>([])
@@ -36,8 +38,23 @@ function App() {
     MachineType.STANDARD
   )
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false) // State for Settings Sidebar
+  const [turingMachine, setTuringMachine] = useState<TuringMachine | null>(null)
 
-  const handleStart = async () => {
+  const mapDirection = (direction: 'l' | 'r' | '*'): Direction => {
+    switch (direction) {
+      case 'l':
+        return Direction.LEFT
+      case 'r':
+        return Direction.RIGHT
+      case '*':
+        return Direction.STAY
+      default:
+        throw new Error(`Invalid direction: ${direction}`)
+    }
+  }
+
+  // Initialize Turing Machine when starting
+  const handleStart = () => {
     if (transitions.length === 0) {
       alert(
         'Please add at least one transition before starting the simulation.'
@@ -52,42 +69,69 @@ function App() {
       setStartState(effectiveStartState)
     }
 
-    try {
-      await api.post('/initialise', {
-        transitions: transitions.map((t) => ({
-          current_state: t.current_state,
-          read_symbol: t.read_symbol,
-          write_symbol: t.write_symbol,
-          direction: t.direction,
-          new_state: t.new_state,
-          breakpoint: t.breakpoint || false
-        })),
-        input_string: inputString || '_',
-        start_state: effectiveStartState,
-        machine_type: machineType
-      })
-      // Initialise UI without performing the first step
-      setTape(
-        inputString.includes('*')
-          ? inputString.replace('*', '_')
-          : inputString || '_'
-      )
-      setHead(inputString.includes('*') ? inputString.indexOf('*') : 0)
-      setCurrentState(effectiveStartState)
-      setSteps(0)
-      setIsStarted(true)
-      setIsHalted(false)
-      setTransitionHistory([])
-    } catch (error: any) {
-      alert(
-        error.response?.data?.detail || 'Error initialising Turing Machine.'
-      )
-      console.error(error)
-    }
+    // Create a new Turing Machine instance
+    const tm = new TuringMachine({
+      transitions: transitions.map((t) => ({
+        current_state: t.current_state,
+        read_symbol: t.read_symbol,
+        write_symbol: t.write_symbol,
+        direction: mapDirection(t.direction), // Use mapping function
+        new_state: t.new_state,
+        breakpoint: t.breakpoint || false
+      })),
+      input_string: inputString || '_',
+      start_state: effectiveStartState,
+      machine_type:
+        machineType === MachineType.STANDARD
+          ? TMType.STANDARD
+          : TMType.LEFT_BOUNDED
+    })
+
+    setTuringMachine(tm)
+
+    // Initialize UI without performing the first step
+    setTape(tm.getTape())
+    setHead(tm.getHead())
+    setCurrentState(tm.getCurrentState())
+    setSteps(tm.getSteps())
+    setIsStarted(true)
+    setIsHalted(false)
+    setTransitionHistory([])
   }
 
-  const handleStep = async () => {
-    if (!isStarted) {
+  const handleReset = () => {
+    if (!turingMachine) {
+      return
+    }
+
+    turingMachine.reset({
+      transitions: transitions.map((t) => ({
+        current_state: t.current_state,
+        read_symbol: t.read_symbol,
+        write_symbol: t.write_symbol,
+        direction: mapDirection(t.direction), // Use mapping function
+        new_state: t.new_state,
+        breakpoint: t.breakpoint || false
+      })),
+      input_string: inputString || '_',
+      start_state: startState,
+      machine_type:
+        machineType === MachineType.STANDARD
+          ? TMType.STANDARD
+          : TMType.LEFT_BOUNDED
+    })
+
+    setTape(turingMachine.getTape())
+    setHead(turingMachine.getHead())
+    setCurrentState(turingMachine.getCurrentState())
+    setSteps(turingMachine.getSteps())
+    setIsStarted(false)
+    setIsHalted(false)
+    setTransitionHistory([])
+  }
+
+  const handleStep = () => {
+    if (!isStarted || !turingMachine) {
       alert('Simulation is not started.')
       return
     }
@@ -97,25 +141,24 @@ function App() {
       return
     }
 
-    try {
-      const response = await api.post('/step')
-      const data: StepOutput = response.data
-      setTape(data.tape)
-      setHead(data.head)
-      setCurrentState(data.current_state)
-      setSteps(data.steps)
-      setIsHalted(data.halted)
-      if (data.transition_taken) {
-        setTransitionHistory([...transitionHistory, data.transition_taken])
+    const output = turingMachine.step()
+
+    setTape(output.tape)
+    setHead(output.head)
+    setCurrentState(output.current_state)
+    setSteps(output.steps)
+    setIsHalted(output.halted)
+
+    if (output.transition_taken) {
+      setTransitionHistory([...transitionHistory, output.transition_taken])
+      if (output.halted) {
+        alert('Turing Machine has halted.')
       }
-    } catch (error: any) {
-      alert(error.response?.data?.detail || 'Error executing step.')
-      console.error(error)
     }
   }
 
-  const handleRun = async () => {
-    if (!isStarted) {
+  const handleRun = () => {
+    if (!isStarted || !turingMachine) {
       alert('Simulation is not started.')
       return
     }
@@ -125,53 +168,40 @@ function App() {
       return
     }
 
-    try {
-      const response = await api.post('/run')
-      const data: StepOutput = response.data
-      setTape(data.tape)
-      setHead(data.head)
-      setCurrentState(data.current_state)
-      setSteps(data.steps)
-      setIsHalted(data.halted)
-      if (data.transitions_traversed) {
-        setTransitionHistory([
-          ...transitionHistory,
-          ...data.transitions_traversed
-        ])
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.detail || 'Error running simulation.')
-      console.error(error)
-    }
-  }
+    const outputs = turingMachine.run()
 
-  const handleReset = async () => {
-    try {
-      await api.post('/reset', {
-        input_string: inputString || '_',
-        start_state: startState,
-        machine_type: machineType
-      })
-      setTape(
-        inputString.includes('*')
-          ? inputString.replace('*', '_')
-          : inputString || '_'
-      )
-      setHead(inputString.includes('*') ? inputString.indexOf('*') : 0)
-      setCurrentState('-')
-      setSteps(0)
-      setIsStarted(false)
-      setIsHalted(false)
-      setTransitionHistory([])
-    } catch (error: any) {
-      alert(error.response?.data?.detail || 'Error resetting Turing Machine.')
-      console.error(error)
+    if (outputs.length > 0) {
+      const lastOutput = outputs[outputs.length - 1]
+      setTape(lastOutput.tape)
+      setHead(lastOutput.head)
+      setCurrentState(lastOutput.current_state)
+      setSteps(lastOutput.steps)
+      setIsHalted(lastOutput.halted)
+      setTransitionHistory([
+        ...transitionHistory,
+        ...outputs.map((o) => o.transition_taken!).filter(Boolean)
+      ])
+      if (lastOutput.halted) {
+        alert('Turing Machine has halted.')
+      }
     }
   }
 
   const toggleSettings = () => {
     setIsSettingsOpen(!isSettingsOpen)
   }
+
+  // Effect to update tape display when Turing Machine updates
+  useEffect(() => {
+    if (turingMachine) {
+      setTape(turingMachine.getTape())
+      setHead(turingMachine.getHead())
+      setCurrentState(turingMachine.getCurrentState())
+      setSteps(turingMachine.getSteps())
+      setIsHalted(turingMachine.isHalted())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turingMachine])
 
   return (
     <div className="App font-sans bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 min-h-screen flex flex-col">
@@ -220,21 +250,30 @@ function App() {
           onReset={handleReset}
         />
 
-        {/* Conditional Transition History */}
-        {transitionHistory.length > 0 && (
-          <TransitionHistory transitions={transitionHistory} />
-        )}
+        {/* Conditional Transition History and Input String/TransitionInput */}
+        <div className="w-full max-w-6xl mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Transition History */}
+          {transitionHistory.length > 0 && (
+            <div className="order-2 lg:order-1">
+              <TransitionHistory transitions={transitionHistory} />
+            </div>
+          )}
 
-        {/* Input String and Transition Inputs */}
-        <div className="w-full max-w-4xl mt-6">
-          <InputString
-            inputString={inputString}
-            setInputString={setInputString}
-          />
-          <TransitionInput
-            transitions={transitions}
-            setTransitions={setTransitions}
-          />
+          {/* Input String and Transition Inputs */}
+          <div
+            className={`order-1 lg:order-2 ${
+              transitionHistory.length > 0 ? '' : 'col-span-2'
+            }`}
+          >
+            <InputString
+              inputString={inputString}
+              setInputString={setInputString}
+            />
+            <TransitionInput
+              transitions={transitions}
+              setTransitions={setTransitions}
+            />
+          </div>
         </div>
       </main>
 
