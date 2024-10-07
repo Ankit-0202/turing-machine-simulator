@@ -40,8 +40,9 @@ function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false) // State for Settings Sidebar
   const [turingMachine, setTuringMachine] = useState<TuringMachine | null>(null)
 
-  const mapDirection = (direction: 'l' | 'r' | '*'): Direction => {
-    switch (direction) {
+  // Helper function to map string directions to Direction enum
+  const mapDirection = (dir: 'l' | 'r' | '*'): Direction => {
+    switch (dir) {
       case 'l':
         return Direction.LEFT
       case 'r':
@@ -49,7 +50,7 @@ function App() {
       case '*':
         return Direction.STAY
       default:
-        throw new Error(`Invalid direction: ${direction}`)
+        throw new Error(`Invalid direction: ${dir}`)
     }
   }
 
@@ -75,7 +76,7 @@ function App() {
         current_state: t.current_state,
         read_symbol: t.read_symbol,
         write_symbol: t.write_symbol,
-        direction: mapDirection(t.direction), // Use mapping function
+        direction: mapDirection(t.direction), // Correctly map direction
         new_state: t.new_state,
         breakpoint: t.breakpoint || false
       })),
@@ -95,37 +96,6 @@ function App() {
     setCurrentState(tm.getCurrentState())
     setSteps(tm.getSteps())
     setIsStarted(true)
-    setIsHalted(false)
-    setTransitionHistory([])
-  }
-
-  const handleReset = () => {
-    if (!turingMachine) {
-      return
-    }
-
-    turingMachine.reset({
-      transitions: transitions.map((t) => ({
-        current_state: t.current_state,
-        read_symbol: t.read_symbol,
-        write_symbol: t.write_symbol,
-        direction: mapDirection(t.direction), // Use mapping function
-        new_state: t.new_state,
-        breakpoint: t.breakpoint || false
-      })),
-      input_string: inputString || '_',
-      start_state: startState,
-      machine_type:
-        machineType === MachineType.STANDARD
-          ? TMType.STANDARD
-          : TMType.LEFT_BOUNDED
-    })
-
-    setTape(turingMachine.getTape())
-    setHead(turingMachine.getHead())
-    setCurrentState(turingMachine.getCurrentState())
-    setSteps(turingMachine.getSteps())
-    setIsStarted(false)
     setIsHalted(false)
     setTransitionHistory([])
   }
@@ -185,6 +155,37 @@ function App() {
         alert('Turing Machine has halted.')
       }
     }
+  }
+
+  const handleReset = () => {
+    if (!turingMachine) {
+      return
+    }
+
+    turingMachine.reset({
+      transitions: transitions.map((t) => ({
+        current_state: t.current_state,
+        read_symbol: t.read_symbol,
+        write_symbol: t.write_symbol,
+        direction: mapDirection(t.direction), // Correctly map direction
+        new_state: t.new_state,
+        breakpoint: t.breakpoint || false
+      })),
+      input_string: inputString || '_',
+      start_state: startState,
+      machine_type:
+        machineType === MachineType.STANDARD
+          ? TMType.STANDARD
+          : TMType.LEFT_BOUNDED
+    })
+
+    setTape(turingMachine.getTape())
+    setHead(turingMachine.getHead())
+    setCurrentState(turingMachine.getCurrentState())
+    setSteps(turingMachine.getSteps())
+    setIsStarted(false)
+    setIsHalted(false)
+    setTransitionHistory([])
   }
 
   const toggleSettings = () => {

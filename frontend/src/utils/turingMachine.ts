@@ -102,17 +102,49 @@ export class TuringMachine {
 
     const current_symbol = this.tape[this.head] || '_'
 
-    // Find matching transition
-    const transition = this.transitions.find(
+    // First, find specific transition
+    let transition = this.transitions.find(
       (t) =>
-        (t.current_state === this.current_state || t.current_state === '*') &&
-        (t.read_symbol === current_symbol || t.read_symbol === '*')
+        t.current_state === this.current_state &&
+        t.read_symbol === current_symbol
     )
 
+    // If no specific transition, find wildcard transition for read_symbol
     if (!transition) {
+      transition = this.transitions.find(
+        (t) => t.current_state === this.current_state && t.read_symbol === '*'
+      )
+    }
+
+    // Optionally, handle wildcard current_state if needed
+    // Uncomment the following if you have transitions with wildcard current_state
+    /*
+    if (!transition) {
+      // Find specific transition with wildcard current_state
+      transition = this.transitions.find(
+        (t) =>
+          t.current_state === '*' &&
+          t.read_symbol === current_symbol
+      );
+    }
+
+    if (!transition) {
+      // Find wildcard transition with wildcard current_state
+      transition = this.transitions.find(
+        (t) =>
+          t.current_state === '*' &&
+          t.read_symbol === '*'
+      );
+    }
+    */
+
+    if (!transition) {
+      // No applicable transition found; halt the machine
       this.halted = true
       return this.generateStepOutput()
     }
+
+    console.log(`Applying Transition: ${JSON.stringify(transition)}`)
 
     // Apply transition
     const write_symbol =
@@ -145,10 +177,12 @@ export class TuringMachine {
       current_state: transition.current_state,
       read_symbol: current_symbol,
       write_symbol: write_symbol,
-      direction: transition.direction,
+      direction: transition.direction, // 'l', 'r', '*'
       new_state: transition.new_state,
       breakpoint: transition.breakpoint || false
     }
+
+    console.log(`Transition Taken: ${JSON.stringify(transition_taken)}`)
 
     this.transition_history.push(transition_taken)
 
